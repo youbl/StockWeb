@@ -7,7 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Invested\**" />
+    <Compile Remove="Listed\**" />
+    <Content Remove="Invested\**" />
+    <Content Remove="Listed\**" />
+    <EmbeddedResource Remove="Invested\**" />
+    <EmbeddedResource Remove="Listed\**" />
+    <None Remove="Invested\**" />
+    <None Remove="Listed\**" />
   </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="DotNetCore.NPOI" Version="1.2.1" />

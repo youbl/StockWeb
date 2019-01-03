@@ -130,13 +130,13 @@ namespace StockWeb.Model
                     }
                     catch (Exception exp)
                     {
-                        LogHelper.LogWarning($"error: {url}: {exp}");
+                        await Util.Log($"error: {url}: {exp}");
                         break;
                     }
                     var startIdx = pageHtml.IndexOf("共搜索到", StringComparison.Ordinal);
                     if (startIdx < 0)
                     {
-                        LogHelper.LogWarning($"no page data: {url}: {pageHtml}");
+                        await Util.Log($"no page data: {url}: {pageHtml}");
                         break;
                     }
                     var match = _regPage.Match(pageHtml);
@@ -183,27 +183,27 @@ namespace StockWeb.Model
             }
             catch (Exception exp)
             {
-                LogHelper.LogWarning($"error: {Url}: {exp}");
+                await Util.Log($"error: {Url}: {exp}");
                 return false;
             }
             var idx = html.IndexOf("上市事件详情", StringComparison.Ordinal);
             if (idx < 0)
             {
-                LogHelper.LogWarning($"no data: {Url}: {html}");
+                await Util.Log($"no data: {Url}: {html}");
                 return false;
             }
 
             var match = _regexMain.Match(html, idx);
             if(!match.Success)
             {
-                LogHelper.LogWarning($"no match data: {Url}: {html}");
+                await Util.Log($"no match data: {Url}: {html}");
                 return false;
             }
             var dataStr = match.Value;
             var matTitle = _regexTitle.Match(dataStr);
             if (!matTitle.Success)
             {
-                LogHelper.LogWarning($"no match title: {Url}: {dataStr}");
+                await Util.Log($"no match title: {Url}: {dataStr}");
                 return false;
             }
             Title = matTitle.Groups[1].Value.Trim();
@@ -211,7 +211,7 @@ namespace StockWeb.Model
             var matData = _regexData.Match(dataStr);
             if (!matData.Success)
             {
-                LogHelper.LogWarning($"no match dataStr: {Url}: {dataStr}");
+                await Util.Log($"no match dataStr: {Url}: {dataStr}");
                 return false;
             }
             Name = TrimVal(matData);

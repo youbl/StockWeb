@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace StockWeb.Services
 {
     public static class Util
     {
+        private static string LogFile = Path.Combine(Environment.CurrentDirectory, "log.txt");
         private static readonly CookieContainer Cookie = new CookieContainer();
         /// <summary>
         /// 读取网页内容返回
@@ -55,6 +57,15 @@ namespace StockWeb.Services
                 return serializer.Deserialize<T>(reader);
             }
 
+        }
+
+
+        public static async Task Log(string msg)
+        {
+            using (var sw = new StreamWriter(LogFile, true, Encoding.UTF8))
+            {
+                await sw.WriteAsync(msg);
+            }
         }
     }
 }

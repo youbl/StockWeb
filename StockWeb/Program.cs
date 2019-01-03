@@ -25,7 +25,9 @@ namespace StockWeb
 
         static async Task Run()
         {
-            ListedEvt.ReadAndToExcel();
+            await new CyzoneInvestService().SaveAllItems();
+
+            //ListedEvt.ReadAndToExcel();
             // InvestEvt.ReadAndToExcel();
             Console.WriteLine("OK");
 
