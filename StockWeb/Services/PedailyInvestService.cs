@@ -19,7 +19,10 @@ namespace StockWeb.Services
         public override string PageUrl { get; } = domain + "/inv/p{0}/";// 共搜索到15957条结果
 
         public override string ItemFilePath{ get; } = 
-            Path.Combine(Environment.CurrentDirectory, $"InvestedPedaily/")+ "{0}.json";
+            Path.Combine(Environment.CurrentDirectory, "InvestedPedaily/")+ "{0}.json";
+        public override string PageFilePath { get; } =
+            Path.Combine(Environment.CurrentDirectory, "InvestedPedailyPage/") + "{0}.html";
+
         public override string PageStartStr { get; } = "共搜索到";
 
         static string allItemFilename = Path.Combine(Environment.CurrentDirectory, "InvestedPedaily/all.json");
@@ -64,7 +67,7 @@ namespace StockWeb.Services
             return ret;
         }
 
-        protected override async void ParseAndSave(string sn, string html)
+        protected override async Task<bool> ParseAndSave(string sn, string html)
         {
             #region 保存详细SN列表
             var dir = Path.GetDirectoryName(allItemFilename);
@@ -84,8 +87,9 @@ namespace StockWeb.Services
             if (!File.Exists(file) && await ParseHtml(evt))
             {
                 SaveToFile(file, evt);
-                SaveNum++;
+                return true;
             }
+            return false;
         }
 
 

@@ -31,14 +31,25 @@ namespace StockWeb.Services
         }
 
 
+        public static void SaveFile(string file, string str)
+        {
+            CreateDir(file);
+            using (var stream = new StreamWriter(file, false, Encoding.UTF8))
+            {
+                stream.Write(str);
+            }
+        }
+        public static string ReadFile(string file)
+        {
+            using (var stream = new StreamReader(file, Encoding.UTF8))
+            {
+                return stream.ReadToEnd();
+            }
+        }
+
         public static void SeriaToFile(string filename, object obj)
         {
-
-            var dir = Path.GetDirectoryName(filename);
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
+            CreateDir(filename);
             var serializer = new Newtonsoft.Json.JsonSerializer();
             using (var stream = new StreamWriter(filename, false, Encoding.UTF8))
                 //using (JsonTextWriter writer = new JsonTextWriter(file))
@@ -59,9 +70,18 @@ namespace StockWeb.Services
 
         }
 
-
+        static void CreateDir(string filename)
+        {
+            var dir = Path.GetDirectoryName(filename);
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+        }
         public static async Task Log(string msg)
         {
+            msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + msg;
+            Console.WriteLine(msg);
             using (var sw = new StreamWriter(LogFile, true, Encoding.UTF8))
             {
                 await sw.WriteAsync(msg);

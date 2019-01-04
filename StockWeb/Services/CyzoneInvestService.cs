@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using StockWeb.Model;
 
 namespace StockWeb.Services
@@ -13,6 +14,8 @@ namespace StockWeb.Services
 
         public override string ItemFilePath { get; } =
             Path.Combine(Environment.CurrentDirectory, $"InvestedCyzone/") + "{0}.json";
+        public override string PageFilePath { get; } =
+            Path.Combine(Environment.CurrentDirectory, $"InvestedCyzonePage/") + "{0}.html";
 
         public override string PageStartStr { get; } = "<h2>投资事件</h2>";
 
@@ -20,8 +23,11 @@ namespace StockWeb.Services
             new Regex(@"<tr\s[^>]*data-url=""//www.cyzone.cn/event/(\d+).html"">([\s\S]*?)</tr>",
                 RegexOptions.Compiled);
 
-        protected override void ParseAndSave(string sn, string html)
+        protected override async Task<bool> ParseAndSave(string sn, string html)
         {
+            var file = string.Format(ItemFilePath, sn);
+            if (File.Exists(file))
+                return false;
             /*
 <tr class="table-plate3" data-url="//www.cyzone.cn/event/489229.html">
 <td class="tp1">
@@ -70,9 +76,8 @@ namespace StockWeb.Services
             match = match.NextMatch();
             evt.Date = TrimVal(match);
 
-            var file = string.Format(ItemFilePath, evt.Sn);
             SaveToFile(file, evt);
-            SaveNum++;
+            return true;
         }
 
     }

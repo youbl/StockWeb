@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.IdentityModel.Logging;
-using StockWeb.Model;
 
 namespace StockWeb.Services
 {
@@ -18,16 +17,20 @@ namespace StockWeb.Services
         /// </summary>
         public abstract string ItemFilePath { get; }
         /// <summary>
+        /// 每分页项的保存路径
+        /// </summary>
+        public abstract string PageFilePath { get; }
+        /// <summary>
         /// 抓取到的分页数据起始字符串
         /// </summary>
         public abstract string PageStartStr { get; }
         protected abstract Regex RegPage { get; }
 
-        protected virtual int ReadNum { get; set; }
-        protected virtual int SaveNum{ get; set; }
+
 
         protected static Regex _regexVal = new Regex(@"<[^>]+>", RegexOptions.Compiled);
         protected Regex _regexTd = new Regex(@"<td[^>]*>([\s\S]+?)</td>", RegexOptions.Compiled);
+
 
         /// <summary>
         /// 遍历所有分页，拉取全部分页数据
@@ -35,22 +38,37 @@ namespace StockWeb.Services
         /// <returns></returns>
         public virtual async Task<int> SaveAllItems()
         {
+            var readNum = 0;
+            var saveNum = 0;
             var ret = 0;
             var page = 1;
             bool findData;
+            bool isNet;
             do
             {
                 findData = false;
                 var url = string.Format(PageUrl, page.ToString());
                 string pageHtml;
+                var pageFile = string.Format(PageFilePath, page.ToString());
                 try
                 {
-                    pageHtml = await Util.GetPage(url);
+                    if (File.Exists(pageFile))
+                    {
+                        isNet = false;
+                        pageHtml = Util.ReadFile(pageFile);
+                    }
+                    else
+                    {
+                        isNet = true;
+                        pageHtml = await Util.GetPage(url);
+                        Util.SaveFile(pageFile, pageHtml);
+                    }
                 }
                 catch (Exception exp)
                 {
                     await Util.Log($"error: {url}: {exp}");
-                    break;
+                    findData = true;
+                    continue;
                 }
                 var startIdx = pageHtml.IndexOf(PageStartStr, StringComparison.Ordinal);
                 if (startIdx < 0)
@@ -66,17 +84,22 @@ namespace StockWeb.Services
 
                     var sn = match.Groups[1].Value;
                     var html = (match.Groups.Count > 2) ? match.Groups[2].Value : "";
-                    ReadNum++;
+                    Interlocked.Increment(ref readNum);
 
-                    if (ReadNum % 100 == 0)
+                    if (readNum % 100 == 0)
                     {
-                        Console.WriteLine($"Total: {ReadNum.ToString()}  OK: {SaveNum.ToString()}");
+                        Console.WriteLine($"Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
                     }
-                    ParseAndSave(sn, html);
+                    if (await ParseAndSave(sn, html))
+                        Interlocked.Increment(ref saveNum);
 
                     match = match.NextMatch();
                 }
                 page++;
+                if (findData && isNet)
+                {
+                    await Task.Delay(5000);
+                }
             } while (findData);
 
             return ret;
@@ -87,15 +110,10 @@ namespace StockWeb.Services
         /// </summary>
         /// <param name="sn"></param>
         /// <param name="html"></param>
-        protected abstract void ParseAndSave(string sn, string html);
+        protected abstract Task<bool> ParseAndSave(string sn, string html);
 
         protected virtual bool SaveToFile(string file, object evt)
         {
-            var dir = Path.GetDirectoryName(file);
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
             if (!File.Exists(file))
             {
                 Util.SeriaToFile(file, evt);
