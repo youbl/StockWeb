@@ -15,19 +15,23 @@ namespace StockWeb.Services
         public override string ItemFilePath { get; } =
             Path.Combine(Environment.CurrentDirectory, $"InvestedCyzone/") + "{0}.json";
         public override string PageFilePath { get; } =
-            Path.Combine(Environment.CurrentDirectory, $"InvestedCyzonePage/") + "{0}.html";
+            Path.Combine(Environment.CurrentDirectory, "InvestedCyzonePage/") + "{0}.html";
+        protected override string CatchedFile { get; } =
+            Path.Combine(Environment.CurrentDirectory, "InvestedCyzoneInc/") + "{0}.txt";
 
+        protected override Type ModelType { get; } = typeof(InvestEvt);
         public override string PageStartStr { get; } = "<h2>投资事件</h2>";
 
         protected override Regex RegPage { get; } =
             new Regex(@"<tr\s[^>]*data-url=""//www.cyzone.cn/event/(\d+).html"">([\s\S]*?)</tr>",
                 RegexOptions.Compiled);
 
-        protected override async Task<bool> ParseAndSave(string sn, string html)
+        Regex _regexTd = new Regex(@"<td[^>]*>([\s\S]+?)</td>", RegexOptions.Compiled);
+
+#pragma warning disable 1998
+        protected override async Task<BaseEvt> ParseHtml(string sn, string html)
+#pragma warning restore 1998
         {
-            var file = string.Format(ItemFilePath, sn);
-            if (File.Exists(file))
-                return false;
             /*
 <tr class="table-plate3" data-url="//www.cyzone.cn/event/489229.html">
 <td class="tp1">
@@ -75,9 +79,7 @@ namespace StockWeb.Services
 
             match = match.NextMatch();
             evt.Date = TrimVal(match);
-
-            SaveToFile(file, evt);
-            return true;
+            return evt;
         }
 
     }

@@ -29,8 +29,7 @@ namespace StockWeb.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<string>> Get(int id)
         {
-            var ret = await ListedEvt.SaveAll();
-            return ret.ToString();
+            return id.ToString();
         }
 
         // POST api/values

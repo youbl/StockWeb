@@ -7,26 +7,26 @@ using StockWeb.Model;
 namespace StockWeb.Services
 {
     /// <summary>
-    /// 投资界融资事件抓取类
-    /// https://zdb.pedaily.cn/inv/
+    /// 投资界上市事件抓取类
+    /// https://zdb.pedaily.cn/ipo/
     /// </summary>
-    public class PedailyInvestService : BaseService
+    public class PedailyListedService : BaseService
     {
         private static string domain = "https://zdb.pedaily.cn";
-        public override string PageUrl { get; } = domain + "/inv/p{0}/";// 共搜索到15957条结果
+        public override string PageUrl { get; } = domain + "/ipo/p{0}/";// 共搜索到15957条结果
 
         public override string ItemFilePath{ get; } = 
-            Path.Combine(Environment.CurrentDirectory, "InvestedPedaily/")+ "{0}.json";
+            Path.Combine(Environment.CurrentDirectory, "ListedPedaily/")+ "{0}.json";
         public override string PageFilePath { get; } =
-            Path.Combine(Environment.CurrentDirectory, "InvestedPedailyPage/") + "{0}.html";
+            Path.Combine(Environment.CurrentDirectory, "ListedPedailyPage/") + "{0}.html";
         protected override string CatchedFile { get; } =
-            Path.Combine(Environment.CurrentDirectory, "InvestedPedailyInc/") + "{0}.txt";
-        protected override Type ModelType { get; } = typeof(InvestEvt);
+            Path.Combine(Environment.CurrentDirectory, "ListedPedailyInc/") + "{0}.txt";
+        protected override Type ModelType { get; } = typeof(ListedEvt);
 
         public override string PageStartStr { get; } = "共搜索到";
 
         protected override Regex RegPage { get; } = 
-            new Regex(@"<a\s[^>]+href=""/inv/show(\d+)/"">详情</a>", RegexOptions.Compiled);
+            new Regex(@"<a\s[^>]+href=""/ipo/show(\d+)/"">详情</a>", RegexOptions.Compiled);
 
         static Regex _regexMain = new Regex(@"<div class=""box-fix-l""><div class=""info"">(.*?)</div></div>", RegexOptions.Compiled);
         static Regex _regexTitle = new Regex(@"<h1[^>]*>(.*?)</h1>", RegexOptions.Compiled);
@@ -35,9 +35,9 @@ namespace StockWeb.Services
 
         protected override async Task<BaseEvt> ParseHtml(string sn, string html)
         {            
-            var evt = new InvestEvt();
+            var evt = new ListedEvt();
             evt.Sn = sn;
-            evt.Url = $"{domain}/inv/show{sn}/";
+            evt.Url = $"{domain}/ipo/show{sn}/";
 
             if (await ParseHtml(evt))
             {
@@ -53,7 +53,7 @@ namespace StockWeb.Services
         /// </summary>
         /// <param name="evt"></param>
         /// <returns></returns>
-        async Task<bool> ParseHtml(InvestEvt evt)
+        async Task<bool> ParseHtml(ListedEvt evt)
         {
             if (string.IsNullOrEmpty(evt.Url))
             {
@@ -97,22 +97,33 @@ namespace StockWeb.Services
                 await Util.Error($"no match dataStr: {evt.Url}: {dataStr}");
                 return false;
             }
-            evt.RecieveEnt = TrimVal(matData, 1);
+            
+            evt.Name = TrimVal(matData, 1);
 
             matData = matData.NextMatch();
-            evt.PayEnt = TrimVal(matData, 1);
+            evt.Industry = TrimVal(matData, 1);
 
             matData = matData.NextMatch();
-            evt.Money = TrimVal(matData, 1);
-
-            matData = matData.NextMatch();
-            evt.Rounds = TrimVal(matData, 1);
+            evt.InvestName = TrimVal(matData, 1);
 
             matData = matData.NextMatch();
             evt.Date = TrimVal(matData, 1);
 
             matData = matData.NextMatch();
-            evt.Industry = TrimVal(matData, 1);
+            evt.Price = TrimVal(matData, 1);
+
+            matData = matData.NextMatch();
+            evt.ListedPlace = TrimVal(matData, 1);
+
+            matData = matData.NextMatch();
+            evt.ListedNum = TrimVal(matData, 1);
+
+            matData = matData.NextMatch();
+            evt.Code = TrimVal(matData, 1);
+
+            matData = matData.NextMatch();
+            evt.VcSuport = TrimVal(matData, 1);
+
             return true;
         }
 

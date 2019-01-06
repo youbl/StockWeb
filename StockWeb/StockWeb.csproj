@@ -7,12 +7,36 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="InvestedCyzoneInc\**" />
+    <Compile Remove="InvestedCyzonePage\**" />
+    <Compile Remove="InvestedCyzone\**" />
+    <Compile Remove="InvestedPedailyInc\**" />
+    <Compile Remove="InvestedPedailyPage\**" />
+    <Compile Remove="InvestedPedaily\**" />
     <Compile Remove="Invested\**" />
     <Compile Remove="Listed\**" />
+    <Content Remove="InvestedCyzoneInc\**" />
+    <Content Remove="InvestedCyzonePage\**" />
+    <Content Remove="InvestedCyzone\**" />
+    <Content Remove="InvestedPedailyInc\**" />
+    <Content Remove="InvestedPedailyPage\**" />
+    <Content Remove="InvestedPedaily\**" />
     <Content Remove="Invested\**" />
     <Content Remove="Listed\**" />
+    <EmbeddedResource Remove="InvestedCyzoneInc\**" />
+    <EmbeddedResource Remove="InvestedCyzonePage\**" />
+    <EmbeddedResource Remove="InvestedCyzone\**" />
+    <EmbeddedResource Remove="InvestedPedailyInc\**" />
+    <EmbeddedResource Remove="InvestedPedailyPage\**" />
+    <EmbeddedResource Remove="InvestedPedaily\**" />
     <EmbeddedResource Remove="Invested\**" />
     <EmbeddedResource Remove="Listed\**" />
+    <None Remove="InvestedCyzoneInc\**" />
+    <None Remove="InvestedCyzonePage\**" />
+    <None Remove="InvestedCyzone\**" />
+    <None Remove="InvestedPedailyInc\**" />
+    <None Remove="InvestedPedailyPage\**" />
+    <None Remove="InvestedPedaily\**" />
     <None Remove="Invested\**" />
     <None Remove="Listed\**" />
   </ItemGroup>
@@ -24,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="wwwroot\a.html">
+    <Content Update="wwwroot\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="wwwroot\js\index.js">

@@ -4,8 +4,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using StockWeb.Services;
 
 namespace StockWeb.Model
 {
@@ -15,17 +13,7 @@ namespace StockWeb.Model
     public abstract class BaseEvt
     {
         #region 属性列表
-        /// <summary>
-        /// 详情地址
-        /// </summary>
-        [Description("详情地址")]
-        public string Url { get; set; }
 
-        /// <summary>
-        /// 序号
-        /// </summary>
-        [Description("序号")]
-        public string Sn { get; set; }
         /// <summary>
         /// 事件标题
         /// </summary>
@@ -39,10 +27,87 @@ namespace StockWeb.Model
         public string Date { get; set; }
 
         /// <summary>
+        /// 融资时间
+        /// </summary>
+        [Description("融资年")]
+        public string DateYear
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Date) || Date.Length < 4)
+                {
+                    return "";
+                }
+                return Date.Substring(0, 4);
+            }
+        }
+
+        private string _indus;
+
+        /// <summary>
         /// 行业
         /// </summary>
         [Description("行业")]
-        public string Industry { get; set; }
+        public string Industry
+        {
+            get { return _indus; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    var arr = value.Split(new char[] {'\r', '\n', '>'}, StringSplitOptions.RemoveEmptyEntries);
+                    Ind1 = arr[0].Trim();
+                    if(arr.Length > 1) Ind2 = arr[1].Trim();
+                    if (arr.Length > 2) Ind3 = arr[2].Trim();
+                }
+                _indus = value;
+            }
+        }
+
+
+
+        [Description("一级行业")]
+        public string Ind1 { get; set; }
+
+
+        [Description("二级行业")]
+        public string Ind2 { get; set; }
+
+
+        [Description("三级行业")]
+        public string Ind3 { get; set; }
+
+        /// <summary>
+        /// 地址
+        /// </summary>
+        [Description("地址")]
+        public string Address { get; set; }
+
+        /// <summary>
+        /// 序号
+        /// </summary>
+        [Description("序号")]
+        public string Sn { get; set; }
+
+        /// <summary>
+        /// 融资详情地址
+        /// </summary>
+        [Description("融资详情")]
+        public string Url { get; set; }
+
+
+        /// <summary>
+        /// 企查查详情地址
+        /// </summary>
+        [Description("企查查详情")]
+        public string UrlEnt { get; set; }
+
+
+        /// <summary>
+        /// 采集时间
+        /// </summary>
+        [Description("采集时间")]
+        public DateTime CatchTime { get; set; } = DateTime.Now;
 
         #endregion
 
@@ -77,43 +142,6 @@ namespace StockWeb.Model
         {
             var ret = matData.Groups[1].Value.Trim();
             return _regexVal.Replace(ret, "").Replace("&gt;", ">");
-        }
-
-
-
-        protected static void ReadAndToExcel<T>(string allItemFilename)
-        {
-            var dir = Path.GetDirectoryName(allItemFilename);
-            var arr = new List<T>();
-            Parallel.ForEach(Directory.GetFiles(dir), file =>
-            {
-                if (file.IndexOf("all.json", StringComparison.OrdinalIgnoreCase) >= 0)
-                    return;
-                try
-                {
-                    var evt = Util.SeriaFromFile<T>(file);
-                    if (evt == null)
-                    {
-                        Console.WriteLine($"{file}  反序列化为空");
-                        return;
-                    }
-                    arr.Add(evt);
-                }
-                catch (Exception exp)
-                {
-                    Console.WriteLine($"{file}  {exp}");
-                }
-            });
-            var xlsfile = Path.Combine(dir, "all.xlsx");
-            Console.WriteLine($"{arr.Count.ToString()} {xlsfile}");
-            try
-            {
-                ExcelHelper.ToExcel(arr, xlsfile);
-            }
-            catch (Exception exp)
-            {
-                Console.WriteLine($"{xlsfile}  {exp}");
-            }
         }
     }
 }

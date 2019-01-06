@@ -28,3 +28,7 @@ http://www.csrc.gov.cn/pub/fujian/fjfdqyxx/
 福建辖区（不含厦门）首发上市辅导备案企业名单http://www.csrc.gov.cn/pub/fujian/fjfdqyxx/fjfdqyjbqk/201810/t20181010_345086.htm
 
 
+一级行业
+=IF(COUNT(FIND(CHAR(10),H108)), LEFT(H108,FIND(CHAR(10),H108)),H108)
+二级行业
+=IF(COUNT(FIND(CHAR(10),H108)), MID(H108,FIND(CHAR(10),H108),100),"")

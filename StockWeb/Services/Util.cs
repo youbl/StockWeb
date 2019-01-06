@@ -9,8 +9,11 @@ namespace StockWeb.Services
 {
     public static class Util
     {
-        private static string LogFile = Path.Combine(Environment.CurrentDirectory, "log.txt");
+        private static string LogFile = Path.Combine(Environment.CurrentDirectory, "loginfo.txt");
+        private static string ErrorFile = Path.Combine(Environment.CurrentDirectory, "logerr.txt");
         private static readonly CookieContainer Cookie = new CookieContainer();
+
+        static readonly object lockObj = new object();
         /// <summary>
         /// 读取网页内容返回
         /// </summary>
@@ -30,6 +33,14 @@ namespace StockWeb.Services
             }
         }
 
+        public static void AppendFile(string file, string str)
+        {
+            CreateDir(file);
+            using (var stream = new StreamWriter(file, true, Encoding.UTF8))
+            {
+                stream.WriteLine(str);
+            }
+        }
 
         public static void SaveFile(string file, string str)
         {
@@ -59,7 +70,32 @@ namespace StockWeb.Services
         }
 
 
-        public static T SeriaFromFile<T>(string filename)
+
+        /// <summary>
+        /// 从文件反序列化
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public static object DeSeriaFromFile(Type type, string filename)
+        {
+            Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
+            using (var file = new StreamReader(filename, Encoding.UTF8))
+            using (var reader = new JsonTextReader(file))
+            {
+                return serializer.Deserialize(reader, type);
+                //return serializer.Deserialize<T>(reader);
+            }
+
+        }
+
+        /// <summary>
+        /// 从文件反序列化
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filename"></param>
+        /// <returns></returns>
+        public static T DeSeriaFromFile<T>(string filename)
         {
             Newtonsoft.Json.JsonSerializer serializer = new Newtonsoft.Json.JsonSerializer();
             using (var file = new StreamReader(filename, Encoding.UTF8))
@@ -70,7 +106,11 @@ namespace StockWeb.Services
 
         }
 
-        static void CreateDir(string filename)
+        /// <summary>
+        /// 目录不存在时创建
+        /// </summary>
+        /// <param name="filename"></param>
+        public static void CreateDir(string filename)
         {
             var dir = Path.GetDirectoryName(filename);
             if (!Directory.Exists(dir))
@@ -80,11 +120,26 @@ namespace StockWeb.Services
         }
         public static async Task Log(string msg)
         {
-            msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + msg;
+            msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + msg + "\r\n";
             Console.WriteLine(msg);
             using (var sw = new StreamWriter(LogFile, true, Encoding.UTF8))
             {
-                await sw.WriteAsync(msg);
+                await sw.WriteLineAsync(msg);
+            }
+        }
+
+        public static async Task Error(string msg)
+        {
+            msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + msg + "\r\n";
+            Console.WriteLine(msg);
+
+            lock (lockObj)
+            {
+                using (var sw = new StreamWriter(ErrorFile, true, Encoding.UTF8))
+                {
+                    sw.WriteLine(msg);
+                    //await sw.WriteLineAsync(msg);
+                }
             }
         }
     }

@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using NPOI.HSSF.UserModel;
+using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
@@ -185,10 +189,20 @@ namespace StockWeb.Services
             else return v.GetHexString();
         }
 
-
-        public static void ToExcel<T>(IEnumerable<T> arr, string filename)
+        /// <summary>
+        /// 把数组转成Excel文件
+        /// </summary>
+        /// <param name="arr"></param>
+        /// <param name="filename"></param>
+        public static void ToExcel(IList arr, string filename)
         {
-            var type = typeof(T);
+            if (arr.Count <= 0)
+            {
+                return;
+            }
+            Util.CreateDir(Path.GetDirectoryName(filename));
+
+            var type = arr[0].GetType();
             var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
 
@@ -201,20 +215,54 @@ namespace StockWeb.Services
                 //创建sheet
                 ISheet sheet = workbook.CreateSheet("sheet0");
 
-                //依次创建行和列
                 var rowNum = 0;
+
+                // 写入标题，粗体
+                var style = workbook.CreateCellStyle();
+                var font = workbook.CreateFont();
+                font.Boldweight = (short)FontBoldWeight.Bold;
+                style.SetFont(font);
+                style.FillForegroundColor = HSSFColor.Blue.Index;// 背景蓝色
+                //style.FillPattern = FillPattern.SolidForeground;//HSSFColor.Blue.Index;// 背景蓝色
+                style.Alignment = HorizontalAlignment.Center; // 居中
+
+                IRow rowTitle = sheet.CreateRow(rowNum);
+                var colTitleNum = 0;
+                foreach (var prop in props)
+                {
+                    ICell cell = rowTitle.CreateCell(colTitleNum);
+                    cell.SetCellValue(GetPropDesc(prop));
+                    cell.CellStyle = style;
+                    colTitleNum++;
+                }
+
+                //依次创建行和列 数据
                 foreach (var item in arr)
                 {
+                    rowNum++;
                     IRow row = sheet.CreateRow(rowNum);
                     var colNum = 0;
                     foreach (var prop in props)
                     {
                         ICell cell = row.CreateCell(colNum);
                         var val = GetPropVal(item, prop);
-                        cell.SetCellValue(val);
+                        if (val.Length > 0 && val[0] == '=')
+                        {
+                            // 表示公式
+                            var fval = string.Format(val.Substring(1), GetColIdx(colNum-1), rowNum + 1);
+                            cell.SetCellFormula(fval);
+                        }
+                        else
+                        {
+                            cell.SetCellValue(val);
+                        }
                         colNum++;
                     }
-                    rowNum++;
+                }
+                // 列宽自适应
+                for (var i = 0; i < props.Length; i++)
+                {
+                    sheet.AutoSizeColumn(i);
                 }
 
                 //向excel文件中写入数据并保保存
@@ -222,10 +270,27 @@ namespace StockWeb.Services
             }
         }
 
+        public static char GetColIdx(int colNum)
+        {
+            var str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+           // if (colNum < str.Length)
+                return str[colNum];
+        }
+
+        public static string GetPropDesc(PropertyInfo info)
+        {
+            var att = info.GetCustomAttribute<DescriptionAttribute>();
+            if (att == null)
+            {
+                return info.Name;
+            }
+            return att.Description;
+        }
         static string GetPropVal(object obj, PropertyInfo info)
         {
             var ret = info.GetValue(obj);
             return Convert.ToString(ret);
         }
+        
     }
 }

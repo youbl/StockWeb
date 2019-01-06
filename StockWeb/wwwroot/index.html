@@ -1,0 +1,40 @@
+﻿<html>
+<head>
+    <title>test</title>
+    <!--<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>-->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script src="js/index.js"></script>
+    <style>
+        th, td {
+            border: black solid 1px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<table border="1" cellpadding="0" cellspacing="0" style="border: black solid 1px;">
+    <tr>
+        <th style="width: 400px;">站点</th>
+        <th style="width: 100px;">增量抓取间隔</th>
+        <th style="width: 200px;">操作</th>
+    </tr>
+    <tr>
+        <td>
+            创业邦 融资动态<br/>
+            http://www.cyzone.cn/event/list-0-1-0-0-0-0/0
+        </td>
+        <td>24小时</td>
+        <td><button onclick="doExport(0)">导出Excel</button></td>
+    </tr>
+    <tr>
+        <td>
+            投资界 投资事件<br />
+            https://zdb.pedaily.cn/inv/p1/
+        </td>
+        <td>24小时</td>
+        <td> <button onclick="doExport(1)">导出Excel</button></td>
+    </tr>
+</table>
+</body>
+</html>
