@@ -63,9 +63,7 @@ namespace StockWeb.Model
                 _indus = value;
             }
         }
-
-
-
+        
         [Description("一级行业")]
         public string Ind1 { get; set; }
 
@@ -76,6 +74,18 @@ namespace StockWeb.Model
 
         [Description("三级行业")]
         public string Ind3 { get; set; }
+
+
+        [Description("省份")]
+        public string Province
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Address) || Address.Length < 2)
+                    return "";
+                return Address.Substring(0, 2);
+            }
+        }
 
         /// <summary>
         /// 地址

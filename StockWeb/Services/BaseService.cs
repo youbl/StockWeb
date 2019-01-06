@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -295,8 +296,11 @@ namespace StockWeb.Services
         /// <returns></returns>
         public static async Task<string[]> GetAddress(string entName, string sn)
         {
+            var cookie = new CookieContainer();
             var entSearchUrl = $"https://www.qichacha.com/search?key={HttpUtility.UrlEncode(entName)}";
-            var html = await Util.GetPage(entSearchUrl);
+            await Util.GetPage("https://www.qichacha.com/", cookie);
+            Thread.Sleep(600);
+            var html = await Util.GetPage(entSearchUrl, cookie);
             var idxStart = html.IndexOf("家符合条件的企业", StringComparison.Ordinal);
             if (idxStart < 0)
             {

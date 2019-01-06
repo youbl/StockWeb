@@ -18,13 +18,14 @@ namespace StockWeb.Services
         /// 读取网页内容返回
         /// </summary>
         /// <param name="url"></param>
+        /// <param name="cookie"></param>
         /// <returns></returns>
-        public static async Task<string> GetPage(string url)
+        public static async Task<string> GetPage(string url, CookieContainer cookie = null)
         {
             var request = (HttpWebRequest) WebRequest.Create(url);
-            request.CookieContainer = Cookie;
+            request.CookieContainer = cookie ?? Cookie;
             request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36";
-            request.Referer = "https://zdb.pedaily.cn/inv/";
+            request.Referer = url;
             using (var response = await request.GetResponseAsync())
                 // ReSharper disable once AssignNullToNotNullAttribute
             using (var stream = new StreamReader(response.GetResponseStream()))
