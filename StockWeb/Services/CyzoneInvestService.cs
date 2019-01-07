@@ -26,7 +26,7 @@ namespace StockWeb.Services
             new Regex(@"<tr\s[^>]*data-url=""//www.cyzone.cn/event/(\d+).html"">([\s\S]*?)</tr>",
                 RegexOptions.Compiled);
 
-        Regex _regexTd = new Regex(@"<td[^>]*>([\s\S]+?)</td>", RegexOptions.Compiled);
+        Regex _regexTd = new Regex(@"<td[^>]*>([\s\S]*?)</td>", RegexOptions.Compiled);
 
 #pragma warning disable 1998
         protected override async Task<BaseEvt> ParseHtml(string sn, string html)

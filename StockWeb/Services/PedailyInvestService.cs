@@ -30,7 +30,7 @@ namespace StockWeb.Services
 
         static Regex _regexMain = new Regex(@"<div class=""box-fix-l""><div class=""info"">(.*?)</div></div>", RegexOptions.Compiled);
         static Regex _regexTitle = new Regex(@"<h1[^>]*>(.*?)</h1>", RegexOptions.Compiled);
-        static Regex _regexData = new Regex(@"<li[^>]*><span[^>]*>.*?</span>((?!</?li>).*?)(?=</?li>)", RegexOptions.Compiled);
+        static Regex _regexData = new Regex(@"<li[^>]*><span[^>]*>.*?</span>(.*?)(?=</?li>)", RegexOptions.Compiled);
         
 
         protected override async Task<BaseEvt> ParseHtml(string sn, string html)
@@ -66,27 +66,27 @@ namespace StockWeb.Services
             }
             catch (Exception exp)
             {
-                await Util.Error($"error: {evt.Url}: {exp}");
+                Util.Error($"error: {evt.Url}: {exp}");
                 return false;
             }
             var idx = html.IndexOf("投资事件详情", StringComparison.Ordinal);
             if (idx < 0)
             {
-                await Util.Error($"no data: {evt.Url}: {html}");
+                Util.Error($"no data: {evt.Url}: {html}");
                 return false;
             }
 
             var match = _regexMain.Match(html, idx);
             if (!match.Success)
             {
-                await Util.Error($"no match data: {evt.Url}: {html}");
+                Util.Error($"no match data: {evt.Url}: {html}");
                 return false;
             }
             var dataStr = match.Value;
             var matTitle = _regexTitle.Match(dataStr);
             if (!matTitle.Success)
             {
-                await Util.Error($"no match title: {evt.Url}: {dataStr}");
+                Util.Error($"no match title: {evt.Url}: {dataStr}");
                 return false;
             }
             evt.Title = TrimVal(matTitle, 1);
@@ -94,7 +94,7 @@ namespace StockWeb.Services
             var matData = _regexData.Match(dataStr);
             if (!matData.Success)
             {
-                await Util.Error($"no match dataStr: {evt.Url}: {dataStr}");
+                Util.Error($"no match dataStr: {evt.Url}: {dataStr}");
                 return false;
             }
             evt.RecieveEnt = TrimVal(matData, 1);

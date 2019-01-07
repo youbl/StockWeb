@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using NPOI.HSSF.UserModel;
-using NPOI.SS.UserModel;
-using NPOI.SS.Util;
-using StockWeb.Model;
-
-namespace StockWeb.Services
+﻿namespace StockWeb.Services
 {
     public class StockService
     {

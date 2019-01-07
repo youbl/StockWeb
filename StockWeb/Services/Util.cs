@@ -26,12 +26,16 @@ namespace StockWeb.Services
             request.CookieContainer = cookie ?? Cookie;
             request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36";
             request.Referer = url;
+            var ret = new StringBuilder();
             using (var response = await request.GetResponseAsync())
                 // ReSharper disable once AssignNullToNotNullAttribute
             using (var stream = new StreamReader(response.GetResponseStream()))
             {
-                return stream.ReadToEnd();
+                ret.AppendFormat("{0}\r\n===\r\n", request.Headers);
+                ret.AppendFormat("{0}\r\n===\r\n", response.Headers);
+                ret.AppendFormat("{0}\r\n", stream.ReadToEnd());
             }
+            return ret.ToString();
         }
 
         public static void AppendFile(string file, string str)
@@ -119,17 +123,29 @@ namespace StockWeb.Services
                 Directory.CreateDirectory(dir);
             }
         }
-        public static async Task Log(string msg)
+
+        public static void Log(string msg)
         {
             msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + msg + "\r\n";
             Console.WriteLine(msg);
-            using (var sw = new StreamWriter(LogFile, true, Encoding.UTF8))
+
+            lock (lockObj)
             {
-                await sw.WriteLineAsync(msg);
+                using (var sw = new StreamWriter(LogFile, true, Encoding.UTF8))
+                {
+                    sw.WriteLine(msg);
+                }
             }
         }
 
-        public static async Task Error(string msg)
+        /// <summary>
+        /// 同步记录错误日志.
+        /// await 不能进行lock,
+        /// 如果要异步写文件并加lock，只能用队列
+        /// </summary>
+        /// <param name="msg"></param>
+        /// <returns></returns>
+        public static void Error(string msg)
         {
             msg = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + ":" + msg + "\r\n";
             Console.WriteLine(msg);

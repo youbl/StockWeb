@@ -67,7 +67,7 @@ namespace StockWeb.Services
             bool findData;
             if (!CatchedFile.Contains("{0}"))
             {
-                await Util.Error(TypeName + " CatchedFile 不含{0}");
+                Util.Error(TypeName + " CatchedFile 不含{0}");
                 return 0;
             }
 
@@ -101,16 +101,16 @@ namespace StockWeb.Services
                 }
                 catch (Exception exp)
                 {
-                    await Util.Error($"error: {url}: {exp}");
+                    Util.Error($"error: {url}: {exp}");
                     findData = true;
                     continue;
                 }
-                await Util.Log($"第:{page.ToString()}页: {TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
+                Util.Log($"第:{page.ToString()}页: {TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
 
                 var startIdx = pageHtml.IndexOf(PageStartStr, StringComparison.Ordinal);
                 if (startIdx < 0)
                 {
-                    await Util.Error($"no page data: {url}: {pageHtml}");
+                    Util.Error($"no page data: {url}: {pageHtml}");
                     break;
                 }
                 var match = RegPage.Match(pageHtml, startIdx);
@@ -125,7 +125,7 @@ namespace StockWeb.Services
                     
                     // 保存详细SN列表
                     Util.AppendFile(cacheFile, sn);
-                    var parseRet = await ParseAndSave(sn, html);
+                    var parseRet = await ParseAndSave(sn, html, page);
                     if (parseRet == 1)
                     {
                         Interlocked.Increment(ref saveNum);
@@ -133,7 +133,7 @@ namespace StockWeb.Services
                     else if(incr && parseRet == 0)
                     {
                         findData = false;
-                        await Util.Log($"数据存在，增量抓取退出 {TypeName}");
+                        Util.Log($"数据存在，增量抓取退出 {TypeName}");
                         break;// 抓取增量数据时，文件存在则退出
                     }
                     match = match.NextMatch();
@@ -145,7 +145,7 @@ namespace StockWeb.Services
                 }
             } while (findData);
 
-            await Util.Log($"本次完成，{TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
+            Util.Log($"本次完成，{TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
             return ret;
         }
 
@@ -157,12 +157,13 @@ namespace StockWeb.Services
         /// </summary>
         /// <param name="sn"></param>
         /// <param name="html"></param>
+        /// <param name="page"></param>
         /// <returns></returns>
-        protected virtual async Task<int> ParseAndSave(string sn, string html)
+        protected virtual async Task<int> ParseAndSave(string sn, string html, int page)
         {
             if (!ItemFilePath.Contains("{0}"))
             {
-                await Util.Error(TypeName + " ItemFilePath 不含{0}");
+                Util.Error(TypeName + " ItemFilePath 不含{0}");
                 return -1;
             }
             var file = string.Format(ItemFilePath, sn);
@@ -172,10 +173,11 @@ namespace StockWeb.Services
             var obj = await ParseHtml(sn, html);
             if (obj != null)
             {
+                obj.Page = page.ToString();
                 Util.SeriaToFile(file, obj);
                 return 1;
             }
-            await Util.Error(TypeName + " 解析出错");
+            Util.Error(TypeName + " 解析出错");
             return -1;
         }
 
@@ -211,7 +213,7 @@ namespace StockWeb.Services
         /// 读取指定目录下的所有文件，转成Excel
         /// </summary>
         /// <param name="xlsfile"></param>
-        public virtual async Task<bool> ReadAndToExcel(string xlsfile = null)
+        public virtual bool ReadAndToExcel(string xlsfile = null)
         {
             //var type = typeof(InvestEvt);
             //Console.WriteLine(type.FullName);
@@ -225,14 +227,14 @@ namespace StockWeb.Services
 
             if (!ModelType.IsSubclassOf(typeof(BaseEvt)))
             {
-                await Util.Error($"{ModelType.FullName} 必须是BaseEvt的子类");
+                Util.Error($"{ModelType.FullName} 必须是BaseEvt的子类");
                 return false;
             }
 
             var dir = Path.GetDirectoryName(ItemFilePath);
             if (!Directory.Exists(dir))
             {
-                await Util.Error($"{dir} 目录不存在");
+                Util.Error($"{dir} 目录不存在");
                 return false;
             }
 
@@ -243,9 +245,9 @@ namespace StockWeb.Services
 
             var arr = new List<BaseEvt>();
             var arrFiles = Directory.GetFiles(dir);
-            await Util.Log($"{dir} 文件个数:{arrFiles.Length.ToString()}");
+            Util.Log($"{dir} 文件个数:{arrFiles.Length.ToString()}");
             //foreach (var file in arrFiles)
-            Parallel.ForEach(arrFiles, async file =>
+            Parallel.ForEach(arrFiles, file =>
             {
                 if (file.IndexOf("all.json", StringComparison.OrdinalIgnoreCase) >= 0 ||
                     !file.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
@@ -255,18 +257,18 @@ namespace StockWeb.Services
                     var evt = Util.DeSeriaFromFile(ModelType, file) as BaseEvt;
                     if (evt == null)
                     {
-                        await Util.Error($"{file} 反序列化为空");
+                        Util.Error($"{file} 反序列化为空");
                         return;
                     }
                     arr.Add(evt);
                 }
                 catch (Exception exp)
                 {
-                    await Util.Error($"{file} {exp}");
+                    Util.Error($"{file} {exp}");
                 }
             });
            
-            await Util.Log($"{dir} 对象个数:{arr.Count.ToString()} {xlsfile}");
+            Util.Log($"{dir} 对象个数:{arr.Count.ToString()} {xlsfile}");
             try
             {
                 ExcelHelper.ToExcel(arr, xlsfile);
@@ -274,7 +276,7 @@ namespace StockWeb.Services
             }
             catch (Exception exp)
             {
-                await Util.Error($"{dir} {xlsfile} {exp}");
+                Util.Error($"{dir} {xlsfile} {exp}");
                 return false;
             }
         }
@@ -286,7 +288,7 @@ namespace StockWeb.Services
         }
 
 
-        static Regex RegEnt = new Regex(@"<a onclick=""addSearchIndex\('([^']+)',\s*\d+\)[^>]+href=""/(firm_[^>""]+)""[^>]*>[\s\S]+?地址：(.+?)\s*</p>", RegexOptions.Compiled);
+        static Regex RegEntQcc = new Regex(@"<a onclick=""addSearchIndex\('([^']+)',\s*\d+\)[^>]+href=""/(firm_[^>""]+)""[^>]*>[\s\S]+?地址：(.+?)\s*</p>", RegexOptions.Compiled);
         /// <summary>
         /// 根据公司名称，去企查查找地址.
         /// 返回 new string[] { entAddr, entUrl }
@@ -294,34 +296,110 @@ namespace StockWeb.Services
         /// <param name="entName"></param>
         /// <param name="sn"></param>
         /// <returns></returns>
-        public static async Task<string[]> GetAddress(string entName, string sn)
+        public static async Task<string[]> GetAddressFromQcc(string entName, string sn)
         {
             var cookie = new CookieContainer();
             var entSearchUrl = $"https://www.qichacha.com/search?key={HttpUtility.UrlEncode(entName)}";
-            await Util.GetPage("https://www.qichacha.com/", cookie);
+            try
+            {
+                await Util.GetPage("https://www.qichacha.com/", cookie);
+            }
+            catch (Exception exp)
+            {
+                var msg = $"{sn}-{entName} 企查查初始化失败\r\n{exp}";
+                Util.Error(msg);
+                return null;
+            }
             Thread.Sleep(600);
             var html = await Util.GetPage(entSearchUrl, cookie);
+            if (html.IndexOf("小查还没找到数据", StringComparison.Ordinal) > 0)
+            {
+                var msg = $"{sn}-{entName} 企查查搜索失败";
+                Util.Error(msg);
+                return new string[] { "", "" };
+            }
             var idxStart = html.IndexOf("家符合条件的企业", StringComparison.Ordinal);
             if (idxStart < 0)
             {
-                var msg = $"{sn}-{entName} 地址未找到\r\n{html}";
-                await Util.Error(msg);
+                var msg = $"{sn}-{entName} 企查查地址未找到\r\n{html}";
+                Util.Error(msg);
                 return null;
             }
-            var match = RegEnt.Match(html, idxStart);
+            var match = RegEntQcc.Match(html, idxStart);
             if (!match.Success)
             {
-                var msg = $"{sn}-{entName} 没有结果匹配\r\n{html}";
-                await Util.Error(msg);
+                var msg = $"{sn}-{entName} 企查查没有结果匹配\r\n{html}";
+                Util.Error(msg);
                 return null;
             }
             if (match.Groups[1].Value != entName)
             {
-                var msg = $"{sn}-{entName} 匹配企业名不一致\r\n{html}";
-                await Util.Error(msg);
+                var msg = $"{sn}-{entName} 企查查匹配企业名不一致\r\n{html}";
+                Util.Error(msg);
                 return null;
             }
             var entUrl = match.Groups[2].Value;
+            var entAddr = TrimVal(match, 3);
+            return new string[] { entAddr, entUrl };
+        }
+
+
+
+        static Regex RegEntTyc = new Regex(@"<span class=""tt hidden"">" +
+            @"{""id"":(\d+),""name"":""([^""]*)"".*?" +
+            @"""regLocation"":""([^""]*)""", RegexOptions.Compiled);
+        /// <summary>
+        /// 根据公司名称，去天眼查找地址.
+        /// 返回 new string[] { entAddr, entUrl }
+        /// </summary>
+        /// <param name="entName"></param>
+        /// <param name="sn"></param>
+        /// <returns></returns>
+        public static async Task<string[]> GetAddressFromTyc(string entName, string sn)
+        {
+            var cookie = new CookieContainer();
+            var entSearchUrl = $"https://www.tianyancha.com/search?key={HttpUtility.UrlEncode(entName)}";
+            try
+            {
+                await Util.GetPage("https://www.tianyancha.com/", cookie);
+            }
+            catch (Exception exp)
+            {
+                var msg = $"{sn}-{entName} 天眼查初始化失败\r\n{exp}";
+                Util.Error(msg);
+                return null;
+            }
+            Thread.Sleep(600);
+            var html = await Util.GetPage(entSearchUrl, cookie);
+            if (html.IndexOf("没有找到相关结果", StringComparison.Ordinal) > 0)
+            {
+                var msg = $"{sn}-{entName} 天眼查搜索失败";
+                Util.Error(msg);
+                return null;
+            }
+            // <span>天眼查为你找到</span><span class="tips-num">4</span>家公司<script
+            var idxStart = html.IndexOf(">家公司<", StringComparison.Ordinal);
+            if (idxStart < 0)
+            {
+                var msg = $"{sn}-{entName} 天眼查地址未找到\r\n{html}";
+                Util.Error(msg);
+                return null;
+            }
+            var match = RegEntTyc.Match(html, idxStart);
+            if (!match.Success)
+            {
+                var msg = $"{sn}-{entName} 天眼查没有结果匹配\r\n{html}";
+                Util.Error(msg);
+                return null;
+            }
+            var matName = TrimVal(match, 2);
+            if (matName != entName)
+            {
+                var msg = $"{sn}-{entName} 天眼查匹配企业名不一致\r\n{html}";
+                Util.Error(msg);
+                return null;
+            }
+            var entUrl = "https://www.tianyancha.com/company/" + TrimVal(match, 1);
             var entAddr = TrimVal(match, 3);
             return new string[] { entAddr, entUrl };
         }

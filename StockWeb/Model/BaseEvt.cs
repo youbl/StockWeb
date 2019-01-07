@@ -112,6 +112,12 @@ namespace StockWeb.Model
         [Description("企查查详情")]
         public string UrlEnt { get; set; }
 
+        /// <summary>
+        /// 所属分页
+        /// </summary>
+        [Description("所属分页")]
+        public string Page { get; set; }
+
 
         /// <summary>
         /// 采集时间
@@ -120,38 +126,5 @@ namespace StockWeb.Model
         public DateTime CatchTime { get; set; } = DateTime.Now;
 
         #endregion
-
-
-        protected static Regex RegNum = new Regex(@"\d+", RegexOptions.Compiled);
-        protected static Regex _regexMain = new Regex(@"<div class=""box-fix-l""><div class=""info"">(.*?)</div></div>", RegexOptions.Compiled);
-        protected static Regex _regexTitle = new Regex(@"<h1[^>]*>(.*?)</h1>", RegexOptions.Compiled);
-        protected static Regex _regexData = new Regex(@"<li[^>]*><span[^>]*>.*?</span>((?!</?li>).*?)(?=</?li>)", RegexOptions.Compiled);
-        protected static Regex _regexVal = new Regex(@"<[^>]+>", RegexOptions.Compiled);
-        
-
-        protected static HashSet<string> GetItemsFromFile(string filename)
-        {
-            var ret = new HashSet<string>();
-            using (var sr = new StreamReader(filename, Encoding.UTF8))
-            {
-                while (!sr.EndOfStream)
-                {
-                    var line = sr.ReadLine() ?? "";
-                    if (line.Length == 0 || line.StartsWith("http"))
-                    {
-                        continue;
-                    }
-                    if(!ret.Add(line))
-                        Console.WriteLine(line);
-                }
-            }
-            return ret;
-        }
-
-        protected static string TrimVal(Match matData)
-        {
-            var ret = matData.Groups[1].Value.Trim();
-            return _regexVal.Replace(ret, "").Replace("&gt;", ">");
-        }
     }
 }
