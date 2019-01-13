@@ -1,0 +1,68 @@
+﻿using System;
+using System.Windows.Forms;
+using StockWin.Services;
+
+namespace StockWin
+{
+    public partial class MainForm : Form
+    {        
+
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            lstSites.Items.Add("全部");
+            lstSites.SelectedIndex = 0;
+            foreach (var pair in TaskService.ArrSites)
+            {
+                lstSites.Items.Add(pair.Key);
+            }
+        }
+
+        private void btnExport_Click(object sender, EventArgs e)
+        {
+            var begin = DateTime.Now;
+            var keywords = txtKeyWords.Text.Split(new char[] {' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+            TaskService.ExportExcel(keywords);
+            ShowTime(begin);
+            //Console.WriteLine("Begin xls");
+            //new CyzoneInvestService().ReadAndToExcel();
+            //new PedailyInvestService().ReadAndToExcel();
+            //Console.WriteLine("OK");
+        }
+
+        private void chkStartCatch_CheckedChanged(object sender, EventArgs e)
+        {
+            var chk = chkStartCatch;
+            if (chk.Checked)
+            {
+                if (!int.TryParse(txtCatchHour.Text.Trim(), out var hour))
+                {
+                    return;
+                }
+                TaskService.StartCatch(hour);
+            }
+            else
+            {
+                TaskService.StopCatch();
+            }
+        }
+
+        void ShowTime(DateTime begin, string msg = null)
+        {
+            var time = (DateTime.Now - begin).TotalSeconds;
+            msg = msg ?? "操作完成";
+            labTime.Text = $"{msg} 耗时：{time.ToString("N2")}秒";
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            var ret = TaskService.CountTaskStatus();
+            labTaskNum.Text = ret;
+        }
+    }
+}
