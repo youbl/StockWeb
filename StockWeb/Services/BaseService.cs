@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +13,7 @@ namespace StockWeb.Services
 {
     public abstract class BaseService
     {
+        public abstract string SiteName { get; }
         protected abstract Type ModelType { get; }
         /// <summary>
         /// 分页URL路径
@@ -46,6 +47,46 @@ namespace StockWeb.Services
         
         protected static Regex RegexVal = new Regex(@"<[^>]+>", RegexOptions.Compiled);
 
+        /// <summary>
+        /// 一轮抓取是否完成
+        /// </summary>
+        public virtual bool Completed { get; private set; } = true;
+        /// <summary>
+        /// 是否中断抓取
+        /// </summary>
+        public virtual bool Cancel { get; set; } = false;
+
+        private DateTime lastTime;
+
+        /// <summary>
+        /// 前次抓取时间
+        /// </summary>
+        public virtual DateTime LastCatchTime
+        {
+            get
+            {
+                if (lastTime == default(DateTime))
+                {
+                    var pageDir = Path.GetDirectoryName(PageFilePath);
+                    if (Directory.Exists(pageDir))
+                    {
+                        var file = Directory.GetFiles(pageDir).FirstOrDefault();
+                        if (file == null)
+                        {
+                            lastTime = new DateTime(2019, 1, 13);
+                        }
+                        else
+                        {
+                            lastTime = new FileInfo(file).CreationTime;
+                        }
+                    }
+
+                }
+                return lastTime;
+            }
+            private set => lastTime = value;
+        }
+
         private string TypeName { get; }
 
         protected BaseService()
@@ -60,91 +101,110 @@ namespace StockWeb.Services
         /// <returns></returns>
         public virtual async Task<int> SaveAllItems(bool incr)
         {
+            Completed = false;
+
             var readNum = 0;
             var saveNum = 0;
             var ret = 0;
             var page = 1;
             bool findData;
-            if (!CatchedFile.Contains("{0}"))
+            try
             {
-                Util.Error(TypeName + " CatchedFile 不含{0}");
-                return 0;
+                if (!CatchedFile.Contains("{0}"))
+                {
+                    Util.Error(TypeName + " CatchedFile 不含{0}");
+                    return 0;
+                }
+
+                var strNow = DateTime.Now.ToString("yyyyMMddHHmmss");
+                var cacheFile = string.Format(CatchedFile, strNow);
+                do
+                {
+                    if (Cancel)
+                    {
+                        Util.Log($"已中断：{TypeName}");
+                        break;
+                    }
+                    findData = false;
+                    var url = string.Format(PageUrl, page.ToString());
+                    string pageHtml;
+                    var pageFile = string.Format(PageFilePath, page.ToString());
+                    bool isNet;
+                    try
+                    {
+                        // 增量抓取时，不考虑本地缓存，直接抓网页
+                        if (incr)
+                        {
+                            pageFile += strNow;
+                        }
+                        if (File.Exists(pageFile))
+                        {
+                            isNet = false;
+                            pageHtml = Util.ReadFile(pageFile);
+                        }
+                        else
+                        {
+                            isNet = true;
+                            pageHtml = await Util.GetPage(url);
+                            Util.SaveFile(pageFile, pageHtml);
+                        }
+                    }
+                    catch (Exception exp)
+                    {
+                        Util.Error($"error: {url}: {exp}");
+                        findData = true;
+                        continue;
+                    }
+                    Util.Log($"第:{page.ToString()}页: {TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
+
+                    var startIdx = pageHtml.IndexOf(PageStartStr, StringComparison.Ordinal);
+                    if (startIdx < 0)
+                    {
+                        Util.Error($"no page data: {url}: {pageHtml}");
+                        break;
+                    }
+                    var match = RegPage.Match(pageHtml, startIdx);
+                    while (match.Success)
+                    {
+                        if (Cancel)
+                        {
+                            Util.Log($"已中断：{TypeName}");
+                            break;
+                        }
+                        findData = true;
+                        ret++;
+
+                        var sn = match.Groups[1].Value;
+                        var html = (match.Groups.Count > 2) ? match.Groups[2].Value : "";
+                        Interlocked.Increment(ref readNum);
+
+                        // 保存详细SN列表
+                        Util.AppendFile(cacheFile, sn);
+                        var parseRet = await ParseAndSave(sn, html, page);
+                        if (parseRet == 1)
+                        {
+                            Interlocked.Increment(ref saveNum);
+                        }
+                        else if (incr && parseRet == 0)
+                        {
+                            findData = false;
+                            Util.Log($"数据存在，增量抓取退出 {TypeName}");
+                            break; // 抓取增量数据时，文件存在则退出
+                        }
+                        match = match.NextMatch();
+                    }
+                    page++;
+                    if (findData && isNet)
+                    {
+                        await Task.Delay(5000);
+                    }
+                } while (findData);
             }
-
-            var strNow = DateTime.Now.ToString("yyyyMMddHHmmss");
-            var cacheFile = string.Format(CatchedFile, strNow);
-            do
+            finally
             {
-                findData = false;
-                var url = string.Format(PageUrl, page.ToString());
-                string pageHtml;
-                var pageFile = string.Format(PageFilePath, page.ToString());
-                bool isNet;
-                try
-                {
-                    // 增量抓取时，不考虑本地缓存，直接抓网页
-                    if (incr)
-                    {
-                        pageFile += strNow;
-                    }
-                    if (File.Exists(pageFile))
-                    {
-                        isNet = false;
-                        pageHtml = Util.ReadFile(pageFile);
-                    }
-                    else
-                    {
-                        isNet = true;
-                        pageHtml = await Util.GetPage(url);
-                        Util.SaveFile(pageFile, pageHtml);
-                    }
-                }
-                catch (Exception exp)
-                {
-                    Util.Error($"error: {url}: {exp}");
-                    findData = true;
-                    continue;
-                }
-                Util.Log($"第:{page.ToString()}页: {TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
-
-                var startIdx = pageHtml.IndexOf(PageStartStr, StringComparison.Ordinal);
-                if (startIdx < 0)
-                {
-                    Util.Error($"no page data: {url}: {pageHtml}");
-                    break;
-                }
-                var match = RegPage.Match(pageHtml, startIdx);
-                while (match.Success)
-                {
-                    findData = true;
-                    ret++;
-
-                    var sn = match.Groups[1].Value;
-                    var html = (match.Groups.Count > 2) ? match.Groups[2].Value : "";
-                    Interlocked.Increment(ref readNum);
-                    
-                    // 保存详细SN列表
-                    Util.AppendFile(cacheFile, sn);
-                    var parseRet = await ParseAndSave(sn, html, page);
-                    if (parseRet == 1)
-                    {
-                        Interlocked.Increment(ref saveNum);
-                    }
-                    else if(incr && parseRet == 0)
-                    {
-                        findData = false;
-                        Util.Log($"数据存在，增量抓取退出 {TypeName}");
-                        break;// 抓取增量数据时，文件存在则退出
-                    }
-                    match = match.NextMatch();
-                }
-                page++;
-                if (findData && isNet)
-                {
-                    await Task.Delay(5000);
-                }
-            } while (findData);
-
+                Completed = true;
+            }
+            LastCatchTime = DateTime.Now;
             Util.Log($"本次完成，{TypeName}|Total: {readNum.ToString()}  OK: {saveNum.ToString()}");
             return ret;
         }
@@ -212,8 +272,9 @@ namespace StockWeb.Services
         /// <summary>
         /// 读取指定目录下的所有文件，转成Excel
         /// </summary>
+        /// <param name="keywords"></param>
         /// <param name="xlsfile"></param>
-        public virtual bool ReadAndToExcel(string xlsfile = null)
+        public virtual string ReadAndToExcel(string[] keywords, string xlsfile = null)
         {
             //var type = typeof(InvestEvt);
             //Console.WriteLine(type.FullName);
@@ -228,14 +289,14 @@ namespace StockWeb.Services
             if (!ModelType.IsSubclassOf(typeof(BaseEvt)))
             {
                 Util.Error($"{ModelType.FullName} 必须是BaseEvt的子类");
-                return false;
+                return null;
             }
 
             var dir = Path.GetDirectoryName(ItemFilePath);
             if (!Directory.Exists(dir))
             {
                 Util.Error($"{dir} 目录不存在");
-                return false;
+                return null;
             }
 
             if (string.IsNullOrEmpty(xlsfile))
@@ -246,6 +307,8 @@ namespace StockWeb.Services
             var arr = new List<BaseEvt>();
             var arrFiles = Directory.GetFiles(dir);
             Util.Log($"{dir} 文件个数:{arrFiles.Length.ToString()}");
+            var needFilter = keywords != null && keywords.Length > 0;
+            
             //foreach (var file in arrFiles)
             Parallel.ForEach(arrFiles, file =>
             {
@@ -254,13 +317,19 @@ namespace StockWeb.Services
                     return; // continue;
                 try
                 {
-                    var evt = Util.DeSeriaFromFile(ModelType, file) as BaseEvt;
-                    if (evt == null)
+                    if (!(Util.DeSeriaFromFile(ModelType, file) is BaseEvt evt))
                     {
                         Util.Error($"{file} 反序列化为空");
                         return;
                     }
-                    arr.Add(evt);
+                    if (needFilter && !ContainsKey(keywords, evt))
+                    {
+                        return;
+                    }
+                    lock (arr)
+                    {
+                        arr.Add(evt);
+                    }
                 }
                 catch (Exception exp)
                 {
@@ -271,14 +340,50 @@ namespace StockWeb.Services
             Util.Log($"{dir} 对象个数:{arr.Count.ToString()} {xlsfile}");
             try
             {
+                arr.Sort((x, y) => String.Compare(x.Title, y.Title, StringComparison.Ordinal));
                 ExcelHelper.ToExcel(arr, xlsfile);
-                return true;
+                return xlsfile;
             }
             catch (Exception exp)
             {
                 Util.Error($"{dir} {xlsfile} {exp}");
+                return null;
+            }
+        }
+
+        static bool ContainsKey(string[] keywords, BaseEvt evt)
+        {
+            string key;
+            if (evt is InvestEvt ievt)
+            {
+                key = FindContainsKey(keywords, ievt.RecieveEnt);
+            }
+            else if (evt is ListedEvt levt)
+            {
+                key = FindContainsKey(keywords, levt.Name);
+            }
+            else
+            {
                 return false;
             }
+            if (!string.IsNullOrEmpty(key))
+            {
+                evt.Keyword = key;
+                return true;
+            }
+            return false;
+        }
+
+        static string FindContainsKey(string[] keywords, string input)
+        {
+            foreach (var keyword in keywords)
+            {
+                if (input.IndexOf(keyword, StringComparison.Ordinal) >= 0)
+                {
+                    return keyword;
+                }
+            }
+            return null;
         }
 
         protected static string TrimVal(Match matData, int idx = 0)

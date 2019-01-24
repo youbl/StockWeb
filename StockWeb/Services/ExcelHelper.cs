@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using NPOI.HSSF.UserModel;
 using NPOI.HSSF.Util;
 using NPOI.SS.UserModel;
@@ -203,7 +202,7 @@ namespace StockWeb.Services
             Util.CreateDir(Path.GetDirectoryName(filename));
 
             var type = arr[0].GetType();
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var props = GetProperties(type);
 
 
             //创建Excel文件名称
@@ -221,8 +220,9 @@ namespace StockWeb.Services
                 var style = workbook.CreateCellStyle();
                 var font = workbook.CreateFont();
                 font.Boldweight = (short)FontBoldWeight.Bold;
+                font.FontHeightInPoints = 16;
                 style.SetFont(font);
-                style.FillForegroundColor = HSSFColor.Blue.Index;// 背景蓝色
+                //style.FillForegroundColor = HSSFColor.Blue.Index;// 背景蓝色
                 //style.FillPattern = FillPattern.SolidForeground;//HSSFColor.Blue.Index;// 背景蓝色
                 style.Alignment = HorizontalAlignment.Center; // 居中
 
@@ -245,7 +245,15 @@ namespace StockWeb.Services
                     foreach (var prop in props)
                     {
                         ICell cell = row.CreateCell(colNum);
-                        var val = GetPropVal(item, prop);
+                        string val="";
+                        //try
+                        //{
+                            val = GetPropVal(item, prop);
+                        //}
+                        //catch (Exception exp)
+                        //{
+                            
+                        //}
                         if (val.Length > 0 && val[0] == '=')
                         {
                             // 表示公式
@@ -260,7 +268,7 @@ namespace StockWeb.Services
                     }
                 }
                 // 列宽自适应
-                for (var i = 0; i < props.Length; i++)
+                for (var i = 0; i < props.Count; i++)
                 {
                     sheet.AutoSizeColumn(i);
                 }
@@ -270,6 +278,21 @@ namespace StockWeb.Services
             }
         }
 
+
+        private static List<PropertyInfo> GetProperties(Type type)
+        {
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var ret = new List<PropertyInfo>();
+            foreach (var prop in props)
+            {
+                var att = GetPropAtt(prop);
+                if (att == null || att.Show)
+                {
+                    ret.Add(prop);
+                }
+            }
+            return ret;
+        }
         public static char GetColIdx(int colNum)
         {
             var str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -286,8 +309,20 @@ namespace StockWeb.Services
             }
             return att.Description;
         }
+
+        public static EvtAttribute GetPropAtt(PropertyInfo info)
+        {
+            var att = info.GetCustomAttribute<EvtAttribute>();
+            return att;
+        }
+
+
         static string GetPropVal(object obj, PropertyInfo info)
         {
+            //if (obj == null || info == null)
+            //{
+            //    return "";
+            //}
             var ret = info.GetValue(obj);
             return Convert.ToString(ret);
         }

@@ -202,7 +202,7 @@ namespace StockWin.Services
             Util.CreateDir(Path.GetDirectoryName(filename));
 
             var type = arr[0].GetType();
-            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var props = GetProperties(type);
 
 
             //创建Excel文件名称
@@ -268,7 +268,7 @@ namespace StockWin.Services
                     }
                 }
                 // 列宽自适应
-                for (var i = 0; i < props.Length; i++)
+                for (var i = 0; i < props.Count; i++)
                 {
                     sheet.AutoSizeColumn(i);
                 }
@@ -278,6 +278,21 @@ namespace StockWin.Services
             }
         }
 
+
+        private static List<PropertyInfo> GetProperties(Type type)
+        {
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var ret = new List<PropertyInfo>();
+            foreach (var prop in props)
+            {
+                var att = GetPropAtt(prop);
+                if (att == null || att.Show)
+                {
+                    ret.Add(prop);
+                }
+            }
+            return ret;
+        }
         public static char GetColIdx(int colNum)
         {
             var str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -294,6 +309,14 @@ namespace StockWin.Services
             }
             return att.Description;
         }
+
+        public static EvtAttribute GetPropAtt(PropertyInfo info)
+        {
+            var att = info.GetCustomAttribute<EvtAttribute>();
+            return att;
+        }
+
+
         static string GetPropVal(object obj, PropertyInfo info)
         {
             //if (obj == null || info == null)

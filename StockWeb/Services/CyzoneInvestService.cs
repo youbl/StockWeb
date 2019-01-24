@@ -6,9 +6,15 @@ using StockWeb.Model;
 
 namespace StockWeb.Services
 {
+    /// <summary>
+    /// 创业邦投资事件抓取。
+    /// 
+    /// </summary>
     public class CyzoneInvestService : BaseService
     {
         private static string domain = "http://www.cyzone.cn";
+
+        public override string SiteName { get; } = "创业邦";
 
         public override string PageUrl { get; } = domain + "/event/list-0-{0}-0-0-0-0/0"; // 1464页
 

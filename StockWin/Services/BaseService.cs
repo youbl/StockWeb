@@ -307,6 +307,8 @@ namespace StockWin.Services
             var arr = new List<BaseEvt>();
             var arrFiles = Directory.GetFiles(dir);
             Util.Log($"{dir} 文件个数:{arrFiles.Length.ToString()}");
+            var needFilter = keywords != null && keywords.Length > 0;
+            
             //foreach (var file in arrFiles)
             Parallel.ForEach(arrFiles, file =>
             {
@@ -320,18 +322,14 @@ namespace StockWin.Services
                         Util.Error($"{file} 反序列化为空");
                         return;
                     }
-                    if (evt is InvestEvt ievt)
+                    if (needFilter && !ContainsKey(keywords, evt))
                     {
-                        if (!ContainsKey(keywords, ievt.RecieveEnt))
-                            return;
-                    }
-                    else if (evt is ListedEvt ilevt)
-                    {
-                        if (!ContainsKey(keywords, ilevt.Name))
-                            return;
+                        return;
                     }
                     lock (arr)
+                    {
                         arr.Add(evt);
+                    }
                 }
                 catch (Exception exp)
                 {
@@ -342,6 +340,7 @@ namespace StockWin.Services
             Util.Log($"{dir} 对象个数:{arr.Count.ToString()} {xlsfile}");
             try
             {
+                arr.Sort((x, y) => String.Compare(x.Title, y.Title, StringComparison.Ordinal));
                 ExcelHelper.ToExcel(arr, xlsfile);
                 return xlsfile;
             }
@@ -352,20 +351,39 @@ namespace StockWin.Services
             }
         }
 
-        static bool ContainsKey(string[] keywords, string input)
+        static bool ContainsKey(string[] keywords, BaseEvt evt)
         {
-            if (keywords == null || keywords.Length <= 0)
+            string key;
+            if (evt is InvestEvt ievt)
             {
-                return true; // 为空不过滤
+                key = FindContainsKey(keywords, ievt.RecieveEnt);
             }
+            else if (evt is ListedEvt levt)
+            {
+                key = FindContainsKey(keywords, levt.Name);
+            }
+            else
+            {
+                return false;
+            }
+            if (!string.IsNullOrEmpty(key))
+            {
+                evt.Keyword = key;
+                return true;
+            }
+            return false;
+        }
+
+        static string FindContainsKey(string[] keywords, string input)
+        {
             foreach (var keyword in keywords)
             {
                 if (input.IndexOf(keyword, StringComparison.Ordinal) >= 0)
                 {
-                    return true;
+                    return keyword;
                 }
             }
-            return false;
+            return null;
         }
 
         protected static string TrimVal(Match matData, int idx = 0)

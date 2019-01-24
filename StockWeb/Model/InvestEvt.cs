@@ -1,13 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.IdentityModel.Logging;
-using StockWeb.Services;
+﻿using System.ComponentModel;
 
 namespace StockWeb.Model
 {

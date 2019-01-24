@@ -6,14 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StockWin.Services
+namespace StockWeb.Services
 {
     public static class TaskService
     {
         internal static Dictionary<string, BaseService> ArrSites = new Dictionary<string, BaseService>()
         {
-            {"创业邦", new StockWin.Services.CyzoneInvestService() },    // http://www.cyzone.cn
-            {"投资界", new StockWin.Services.PedailyInvestService()},   // https://zdb.pedaily.cn
+            {"创业邦", new StockWeb.Services.CyzoneInvestService() },    // http://www.cyzone.cn
+            {"投资界", new StockWeb.Services.PedailyInvestService()},   // https://zdb.pedaily.cn
         };
 
         private static bool Catching;

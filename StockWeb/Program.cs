@@ -122,8 +122,8 @@ namespace StockWeb
                         fail++;
                         continue;
                     }
-                    evt.Address = addrArr[0];
-                    evt.UrlEnt = addrArr[1];
+                    //evt.Address = addrArr[0];
+                    //evt.UrlEnt = addrArr[1];
                     Util.SeriaToFile(newfile, evt);
                 }
                 catch (Exception exp)

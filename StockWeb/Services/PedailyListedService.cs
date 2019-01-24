@@ -13,6 +13,7 @@ namespace StockWeb.Services
     public class PedailyListedService : BaseService
     {
         private static string domain = "https://zdb.pedaily.cn";
+        public override string SiteName { get; } = "投资界";
         public override string PageUrl { get; } = domain + "/ipo/p{0}/";// 共搜索到15957条结果
 
         public override string ItemFilePath{ get; } = 

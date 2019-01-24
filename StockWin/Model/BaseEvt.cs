@@ -89,10 +89,14 @@ namespace StockWin.Model
         //[Description("地址")]
         //public string Address { get; set; }
 
+        [Description("关键词")]
+        public string Keyword { get; set; }
+
         /// <summary>
         /// 序号
         /// </summary>
         [Description("序号")]
+        [Evt(false)]
         public string Sn { get; set; }
 
         /// <summary>
@@ -112,6 +116,7 @@ namespace StockWin.Model
         /// 所属分页
         /// </summary>
         [Description("所属分页")]
+        [Evt(false)]
         public string Page { get; set; }
 
 

@@ -117,7 +117,7 @@ namespace StockWeb.Services
         /// <param name="filename"></param>
         public static void CreateDir(string filename)
         {
-            var dir = Path.GetDirectoryName(filename);
+            var dir = Path.GetDirectoryName(filename) ?? "";
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);

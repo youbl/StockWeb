@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace StockWeb.Model
 {
@@ -76,27 +72,31 @@ namespace StockWeb.Model
         public string Ind3 { get; set; }
 
 
-        [Description("省份")]
-        public string Province
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(Address) || Address.Length < 2)
-                    return "";
-                return Address.Substring(0, 2);
-            }
-        }
+        //[Description("省份")]
+        //public string Province
+        //{
+        //    get
+        //    {
+        //        if (string.IsNullOrEmpty(Address) || Address.Length < 2)
+        //            return "";
+        //        return Address.Substring(0, 2);
+        //    }
+        //}
 
-        /// <summary>
-        /// 地址
-        /// </summary>
-        [Description("地址")]
-        public string Address { get; set; }
+        ///// <summary>
+        ///// 地址
+        ///// </summary>
+        //[Description("地址")]
+        //public string Address { get; set; }
+
+        [Description("关键词")]
+        public string Keyword { get; set; }
 
         /// <summary>
         /// 序号
         /// </summary>
         [Description("序号")]
+        [Evt(false)]
         public string Sn { get; set; }
 
         /// <summary>
@@ -106,16 +106,17 @@ namespace StockWeb.Model
         public string Url { get; set; }
 
 
-        /// <summary>
-        /// 企查查详情地址
-        /// </summary>
-        [Description("企查查详情")]
-        public string UrlEnt { get; set; }
+        ///// <summary>
+        ///// 企查查详情地址
+        ///// </summary>
+        //[Description("企查查详情")]
+        //public string UrlEnt { get; set; }
 
         /// <summary>
         /// 所属分页
         /// </summary>
         [Description("所属分页")]
+        [Evt(false)]
         public string Page { get; set; }
 
 

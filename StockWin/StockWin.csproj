@@ -70,6 +70,7 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Model\EvtAttribute.cs" />
     <Compile Include="Model\BaseEvt.cs" />
     <Compile Include="Model\InvestEvt.cs" />
     <Compile Include="Model\ListedEnt.cs" />
