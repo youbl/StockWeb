@@ -33,16 +33,18 @@
             this.labTaskNum = new System.Windows.Forms.Label();
             this.txtCatchHour = new System.Windows.Forms.TextBox();
             this.chkStartCatch = new System.Windows.Forms.CheckBox();
-            this.btnExport = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.lstSites = new System.Windows.Forms.ComboBox();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.txtKeyWords = new System.Windows.Forms.TextBox();
+            this.lstSites = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.btnExport = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
             this.labTime = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.chkSingle = new System.Windows.Forms.CheckBox();
+            this.chkTitle = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -107,17 +109,6 @@
             this.chkStartCatch.UseVisualStyleBackColor = true;
             this.chkStartCatch.CheckedChanged += new System.EventHandler(this.chkStartCatch_CheckedChanged);
             // 
-            // btnExport
-            // 
-            this.btnExport.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnExport.Location = new System.Drawing.Point(54, 38);
-            this.btnExport.Name = "btnExport";
-            this.btnExport.Size = new System.Drawing.Size(117, 56);
-            this.btnExport.TabIndex = 2;
-            this.btnExport.Text = "根据右边的关键词导出Excel";
-            this.btnExport.UseVisualStyleBackColor = true;
-            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -127,15 +118,6 @@
             this.label3.TabIndex = 1;
             this.label3.Text = "小时";
             // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(7, 121);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(209, 60);
-            this.label5.TabIndex = 1;
-            this.label5.Text = "- 多个关键词以空格或换行分隔；\r\n\r\n- 根据关键词对公司名称进行筛选；\r\n\r\n- 关键词为空，表示不筛选，全部导出";
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -144,24 +126,6 @@
             this.label2.Size = new System.Drawing.Size(113, 12);
             this.label2.TabIndex = 1;
             this.label2.Text = "增量抓取时间间隔：";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(7, 15);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "网站：";
-            // 
-            // lstSites
-            // 
-            this.lstSites.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.lstSites.FormattingEnabled = true;
-            this.lstSites.Location = new System.Drawing.Point(54, 12);
-            this.lstSites.Name = "lstSites";
-            this.lstSites.Size = new System.Drawing.Size(121, 20);
-            this.lstSites.TabIndex = 0;
             // 
             // splitContainer2
             // 
@@ -173,6 +137,8 @@
             // 
             // splitContainer2.Panel1
             // 
+            this.splitContainer2.Panel1.Controls.Add(this.chkTitle);
+            this.splitContainer2.Panel1.Controls.Add(this.chkSingle);
             this.splitContainer2.Panel1.Controls.Add(this.txtKeyWords);
             this.splitContainer2.Panel1.Controls.Add(this.lstSites);
             this.splitContainer2.Panel1.Controls.Add(this.label1);
@@ -193,14 +159,52 @@
             this.txtKeyWords.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtKeyWords.Location = new System.Drawing.Point(224, 0);
+            this.txtKeyWords.Location = new System.Drawing.Point(276, 0);
             this.txtKeyWords.Margin = new System.Windows.Forms.Padding(13);
             this.txtKeyWords.Multiline = true;
             this.txtKeyWords.Name = "txtKeyWords";
             this.txtKeyWords.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.txtKeyWords.Size = new System.Drawing.Size(506, 265);
+            this.txtKeyWords.Size = new System.Drawing.Size(454, 265);
             this.txtKeyWords.TabIndex = 0;
             this.txtKeyWords.Text = "厦门\r\n福州\r\n南平\r\n三明\r\n莆田\r\n泉州\r\n漳州\r\n龙岩\r\n宁德\r\n长乐\r\n石狮\r\n晋江\r\n福建";
+            // 
+            // lstSites
+            // 
+            this.lstSites.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.lstSites.FormattingEnabled = true;
+            this.lstSites.Location = new System.Drawing.Point(54, 12);
+            this.lstSites.Name = "lstSites";
+            this.lstSites.Size = new System.Drawing.Size(121, 20);
+            this.lstSites.TabIndex = 0;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(7, 15);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "网站：";
+            // 
+            // btnExport
+            // 
+            this.btnExport.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnExport.Location = new System.Drawing.Point(54, 73);
+            this.btnExport.Name = "btnExport";
+            this.btnExport.Size = new System.Drawing.Size(170, 56);
+            this.btnExport.TabIndex = 2;
+            this.btnExport.Text = "根据右边的关键词\r\n\r\n导出Excel";
+            this.btnExport.UseVisualStyleBackColor = true;
+            this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(7, 142);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(209, 60);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "- 多个关键词以空格或换行分隔；\r\n\r\n- 根据关键词对公司名称进行筛选；\r\n\r\n- 关键词为空，表示不筛选，全部导出";
             // 
             // labTime
             // 
@@ -217,6 +221,30 @@
             this.timer1.Enabled = true;
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
+            // chkSingle
+            // 
+            this.chkSingle.AutoSize = true;
+            this.chkSingle.Checked = true;
+            this.chkSingle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkSingle.Location = new System.Drawing.Point(141, 51);
+            this.chkSingle.Name = "chkSingle";
+            this.chkSingle.Size = new System.Drawing.Size(126, 16);
+            this.chkSingle.TabIndex = 3;
+            this.chkSingle.Text = "导出单个Excel文件";
+            this.chkSingle.UseVisualStyleBackColor = true;
+            // 
+            // chkTitle
+            // 
+            this.chkTitle.AutoSize = true;
+            this.chkTitle.Checked = true;
+            this.chkTitle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkTitle.Location = new System.Drawing.Point(12, 51);
+            this.chkTitle.Name = "chkTitle";
+            this.chkTitle.Size = new System.Drawing.Size(108, 16);
+            this.chkTitle.TabIndex = 3;
+            this.chkTitle.Text = "导出文件带标题";
+            this.chkTitle.UseVisualStyleBackColor = true;
             // 
             // MainForm
             // 
@@ -257,6 +285,8 @@
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.Label labTime;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.CheckBox chkSingle;
+        private System.Windows.Forms.CheckBox chkTitle;
     }
 }
 

@@ -269,23 +269,8 @@ namespace StockWin.Services
         //    }
         //}
 
-        /// <summary>
-        /// 读取指定目录下的所有文件，转成Excel
-        /// </summary>
-        /// <param name="keywords"></param>
-        /// <param name="xlsfile"></param>
-        public virtual string ReadAndToExcel(string[] keywords, string xlsfile = null)
+        public virtual List<BaseEvt> ReadEvts(string[] keywords)
         {
-            //var type = typeof(InvestEvt);
-            //Console.WriteLine(type.FullName);
-            //var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            //foreach (var prop in props)
-            //{
-            //    Console.WriteLine(prop.Name);
-            //    Console.WriteLine(ExcelHelper.GetPropDesc(prop));
-            //}
-            //return false;
-
             if (!ModelType.IsSubclassOf(typeof(BaseEvt)))
             {
                 Util.Error($"{ModelType.FullName} 必须是BaseEvt的子类");
@@ -299,17 +284,9 @@ namespace StockWin.Services
                 return null;
             }
 
-            if (string.IsNullOrEmpty(xlsfile))
-            {
-                xlsfile = Path.Combine(dir, "all.xlsx");
-            }
-
             var arr = new List<BaseEvt>();
             var arrFiles = Directory.GetFiles(dir);
-            Util.Log($"{dir} 文件个数:{arrFiles.Length.ToString()}");
             var needFilter = keywords != null && keywords.Length > 0;
-            
-            //foreach (var file in arrFiles)
             Parallel.ForEach(arrFiles, file =>
             {
                 if (file.IndexOf("all.json", StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -336,12 +313,31 @@ namespace StockWin.Services
                     Util.Error($"{file} {exp}");
                 }
             });
+            return arr;
+        }
+
+        /// <summary>
+        /// 读取指定目录下的所有文件，转成Excel
+        /// </summary>
+        /// <param name="keywords"></param>
+        /// <param name="xlsfile"></param>
+        /// <param name="showTitle"></param>
+        public virtual string ReadAndToExcel(string[] keywords, string xlsfile = null, bool showTitle = true)
+        {
+            var dir = Path.GetDirectoryName(ItemFilePath) ?? "";
+            if (string.IsNullOrEmpty(xlsfile))
+            {
+                xlsfile = Path.Combine(dir, "all.xlsx");
+            }
+
+            Util.Log($"{GetType().FullName} 开始导出");
+            var arr = ReadEvts(keywords);
+            Util.Log($"{GetType().FullName} 读取到{arr.Count.ToString()}条数据 {xlsfile}");
            
-            Util.Log($"{dir} 对象个数:{arr.Count.ToString()} {xlsfile}");
             try
             {
                 arr.Sort((x, y) => String.Compare(x.Title, y.Title, StringComparison.Ordinal));
-                ExcelHelper.ToExcel(arr, xlsfile);
+                ExcelHelper.ToExcel(arr, xlsfile, showTitle);
                 return xlsfile;
             }
             catch (Exception exp)

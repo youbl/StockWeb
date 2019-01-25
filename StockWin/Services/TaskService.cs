@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using StockWin.Model;
 
 namespace StockWin.Services
 {
@@ -106,18 +108,36 @@ namespace StockWin.Services
             // throw new Exception("未找到匹配的抓取服务");
         }
 
-        internal static void ExportExcel(string[] keywords)
+        internal static void ExportExcel(string[] keywords, bool single, bool showTitle)
         {
             var now = DateTime.Now.ToString("yyyyMMddHHmmss");
             string file = "";
-            foreach (var pair in ArrSites)
+            if (single)
             {
-                file = Path.Combine(Environment.CurrentDirectory, $"{pair.Key}{now}.xlsx");
-                pair.Value.ReadAndToExcel(keywords, file);
+                var arr = new List<BaseEvt>();
+                foreach (var pair in ArrSites)
+                {
+                    arr.AddRange(pair.Value.ReadEvts(keywords));
+                }
+                file = Path.Combine(Environment.CurrentDirectory, $"{now}.xlsx");
+                arr.Sort((x, y) => String.Compare(x.Title, y.Title, StringComparison.Ordinal));
+                ExcelHelper.ToExcel(arr, file, showTitle);
             }
-            if (!string.IsNullOrEmpty(file))
+            else
+            {
+                foreach (var pair in ArrSites)
+                {
+                    file = Path.Combine(Environment.CurrentDirectory, $"{pair.Key}{now}.xlsx");
+                    pair.Value.ReadAndToExcel(keywords, file, showTitle);
+                }
+            }
+            if (!string.IsNullOrEmpty(file) && File.Exists(file))
             {
                 Process.Start("explorer", "/select," + file);
+            }
+            else
+            {
+                MessageBox.Show("导出失败。");
             }
             //Console.WriteLine("Begin xls");
             //new CyzoneInvestService().ReadAndToExcel();

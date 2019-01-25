@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using StockWin.Model;
+using StockWin.Services;
 
 namespace StockWin
 {
@@ -15,38 +14,87 @@ namespace StockWin
         [STAThread]
         static void Main()
         {
+            //var html = Services.Util.ReadFile("d:/1.txt");
+            //var aa = new InvestEvt();
+            //new PedailyInvestService().RealParse(aa, html);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            DependentFiles.LoadResourceDll();       // 载入资源dll文件
+            // += new ResolveEventHandler(AssemblyResolve_ResxFile);
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
             Application.Run(new MainForm());
         }
-    }
 
-    /// <summary>
-    /// QRTool.DependentFiles.LoadResourceDll();       // 载入资源dll文件
-    /// </summary>
-    class DependentFiles
-    {
+        #region 从exe嵌入资源里加载dll的方法, Web项目不要使用
+
+        private static Assembly exeAss = Assembly.GetEntryAssembly();
+        private static System.Resources.ResourceManager resManager;
+        private static System.Resources.ResourceManager ResManager
+        {
+            get
+            {
+                if (resManager == null)
+                {
+                    var entryNamespace = exeAss.GetTypes()[0].Namespace;
+                    resManager = new System.Resources.ResourceManager(entryNamespace + ".Properties.Resources",
+                        Assembly.GetExecutingAssembly());
+                }
+                return resManager;
+            }
+        }
+
         /// <summary>
-        /// 载入资源文件中附带的所有dll文件
+        /// 从嵌入的资源文件里加载dll,调用方法：在Main函数里执行：
+        /// AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
         /// </summary>
-        public static void LoadResourceDll()
+        /// <param name="sender"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(CurrentDomain_AssemblyResolve);
+            // System.Reflection.RuntimeAssembly exeAss;  exeAss.GetManifestResourceNames()
+            var idx = args.Name.IndexOf(',');
+            string dllName = idx > 0 ? args.Name.Substring(0, idx) : args.Name.Replace(".dll", "");
+            if (dllName.EndsWith(".resources"))
+            {
+                return null;
+            }
+
+            // 读取那些 生成操作为“嵌入的资源”的数据
+            string resourceName = $"{exeAss.GetTypes()[0].Namespace}.{dllName}.dll";
+            using (var stream = exeAss.GetManifestResourceStream(resourceName))
+            {
+                if (stream != null)
+                {
+                    var len = (int)stream.Length;
+                    var assemblyData = new byte[len];
+                    if (stream.Read(assemblyData, 0, len) == len)
+                    {
+                        return Assembly.Load(assemblyData);
+                    }
+                }
+            }
+
+            // 读取那些 嵌入在“Resources.resx”里的数据
+            dllName = dllName.Replace(".", "_");
+            try
+            {
+                var bytes = (byte[])ResManager.GetObject(dllName);
+                if (bytes == null)
+                {
+                    return null;
+                }
+                return Assembly.Load(bytes);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
-        private static System.Reflection.Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            string dllName = args.Name.Contains(",") ? args.Name.Substring(0, args.Name.IndexOf(',')) : args.Name.Replace(".dll", "");
-            dllName = dllName.Replace(".", "_");
-            if (dllName.EndsWith("_resources")) return null;
-            string Namespace = Assembly.GetEntryAssembly().GetTypes()[0].Namespace;
-            System.Resources.ResourceManager rm = new System.Resources.ResourceManager(Namespace + ".Properties.Resources", System.Reflection.Assembly.GetExecutingAssembly());
-            byte[] bytes = (byte[])rm.GetObject(dllName);
-            return System.Reflection.Assembly.Load(bytes);
-        }
+        #endregion
 
     }
 }

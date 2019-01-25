@@ -70,6 +70,12 @@ namespace StockWin.Services
                 Util.Error($"error: {evt.Url}: {exp}");
                 return false;
             }
+          
+            return RealParse(evt, html);
+        }
+
+        internal bool RealParse(InvestEvt evt, string html)
+        {
             var idx = html.IndexOf("投资事件详情", StringComparison.Ordinal);
             if (idx < 0)
             {
@@ -110,13 +116,11 @@ namespace StockWin.Services
             evt.Rounds = TrimVal(matData, 1);
 
             matData = matData.NextMatch();
-            evt.Date = TrimVal(matData, 1);
+            evt.Date = TrimVal(matData, 1).Replace("年", "-").Replace("月", "-").Replace("日", ""); 
 
             matData = matData.NextMatch();
             evt.Industry = TrimVal(matData, 1);
             return true;
         }
-
-
     }
 }

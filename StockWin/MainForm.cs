@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Windows.Forms;
 using StockWin.Services;
 
@@ -21,14 +22,16 @@ namespace StockWin
             {
                 lstSites.Items.Add(pair.Key);
             }
-            chkStartCatch.Checked = true;
+            var autoStart = ConfigurationManager.AppSettings["AutoStart"] ?? "true";
+            if(autoStart.Equals("true", StringComparison.OrdinalIgnoreCase))
+                chkStartCatch.Checked = true;
         }
 
         private void btnExport_Click(object sender, EventArgs e)
         {
             var begin = DateTime.Now;
             var keywords = txtKeyWords.Text.Split(new char[] {' ', '\r', '\n', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-            TaskService.ExportExcel(keywords);
+            TaskService.ExportExcel(keywords, chkSingle.Checked, chkTitle.Checked);
             ShowTime(begin);
             //Console.WriteLine("Begin xls");
             //new CyzoneInvestService().ReadAndToExcel();
@@ -38,6 +41,10 @@ namespace StockWin
 
         private void chkStartCatch_CheckedChanged(object sender, EventArgs e)
         {
+            // 全量抓取代码：
+            // new PedailyInvestService().SaveAllItems(false);
+            // new CyzoneInvestService().SaveAllItems(false);
+            // return;
             var chk = chkStartCatch;
             if (chk.Checked)
             {

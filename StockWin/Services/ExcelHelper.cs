@@ -193,7 +193,8 @@ namespace StockWin.Services
         /// </summary>
         /// <param name="arr"></param>
         /// <param name="filename"></param>
-        public static void ToExcel(IList arr, string filename)
+        /// <param name="showTitle"></param>
+        public static void ToExcel(IList arr, string filename, bool showTitle)
         {
             if (arr.Count <= 0)
             {
@@ -226,14 +227,17 @@ namespace StockWin.Services
                 //style.FillPattern = FillPattern.SolidForeground;//HSSFColor.Blue.Index;// 背景蓝色
                 style.Alignment = HorizontalAlignment.Center; // 居中
 
-                IRow rowTitle = sheet.CreateRow(rowNum);
-                var colTitleNum = 0;
-                foreach (var prop in props)
+                if (showTitle)
                 {
-                    ICell cell = rowTitle.CreateCell(colTitleNum);
-                    cell.SetCellValue(GetPropDesc(prop));
-                    cell.CellStyle = style;
-                    colTitleNum++;
+                    IRow rowTitle = sheet.CreateRow(rowNum);
+                    var colTitleNum = 0;
+                    foreach (var prop in props)
+                    {
+                        ICell cell = rowTitle.CreateCell(colTitleNum);
+                        cell.SetCellValue(GetPropDesc(prop));
+                        cell.CellStyle = style;
+                        colTitleNum++;
+                    }
                 }
 
                 //依次创建行和列 数据
@@ -245,15 +249,7 @@ namespace StockWin.Services
                     foreach (var prop in props)
                     {
                         ICell cell = row.CreateCell(colNum);
-                        string val="";
-                        //try
-                        //{
-                            val = GetPropVal(item, prop);
-                        //}
-                        //catch (Exception exp)
-                        //{
-                            
-                        //}
+                        string val = GetPropVal(item, prop);
                         if (val.Length > 0 && val[0] == '=')
                         {
                             // 表示公式
