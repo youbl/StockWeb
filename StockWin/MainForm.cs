@@ -21,6 +21,7 @@ namespace StockWin
             {
                 lstSites.Items.Add(pair.Key);
             }
+            chkStartCatch.Checked = true;
         }
 
         private void btnExport_Click(object sender, EventArgs e)
