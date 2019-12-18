@@ -16,7 +16,9 @@ namespace StockWin.Services
 
         public override string SiteName { get; } = "创业邦";
 
-        public override string PageUrl { get; } = domain + "/event/list-0-{0}-0-0-0-0/0"; // 1464页
+        // 2019-01-25： http://www.cyzone.cn/event/list-0-1-0-0-0-0/0 到 http://www.cyzone.cn/event/list-0-1464-0-0-0-0/0
+        // 2019-12-18： http://www.cyzone.cn/event/list-0-0-0-0-0-0-1/0 到 http://www.cyzone.cn/event/list-0-0-0-0-0-0-1786/0
+        public override string PageUrl { get; } = domain + "/event/list-0-0-0-0-0-0-{0}/0"; // 1464页
 
         public override string ItemFilePath { get; } =
             Path.Combine(Environment.CurrentDirectory, $"InvestedCyzone/") + "{0}.json";
@@ -29,7 +31,7 @@ namespace StockWin.Services
         public override string PageStartStr { get; } = "<h2>投资事件</h2>";
 
         protected override Regex RegPage { get; } =
-            new Regex(@"<tr\s[^>]*data-url=""//www.cyzone.cn/event/(\d+).html"">([\s\S]*?)</tr>",
+            new Regex(@"<tr\s[^>]*>(?<content>[\s\S]*?/company/(?<id>\d+).html[\s\S]*?)</tr>",
                 RegexOptions.Compiled);
 
         Regex _regexTd = new Regex(@"<td[^>]*>([\s\S]*?)</td>", RegexOptions.Compiled);
@@ -61,7 +63,7 @@ namespace StockWin.Services
              */
             var evt = new InvestEvt();
             evt.Sn = sn;
-            evt.Url = $"{domain}/event/{sn}.html";
+            evt.Url = $"{domain}/company/{sn}.html";//http://www.cyzone.cn/company/1515916.html
 
             // 第一个是图片
             var match = _regexTd.Match(html);

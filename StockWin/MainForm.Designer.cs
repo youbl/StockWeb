@@ -32,10 +32,12 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.labTaskNum = new System.Windows.Forms.Label();
             this.txtCatchHour = new System.Windows.Forms.TextBox();
+            this.chkIncr = new System.Windows.Forms.CheckBox();
             this.chkStartCatch = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.chkTitle = new System.Windows.Forms.CheckBox();
+            this.chkSingle = new System.Windows.Forms.CheckBox();
             this.txtKeyWords = new System.Windows.Forms.TextBox();
             this.lstSites = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -43,8 +45,6 @@
             this.label5 = new System.Windows.Forms.Label();
             this.labTime = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.chkSingle = new System.Windows.Forms.CheckBox();
-            this.chkTitle = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -67,9 +67,9 @@
             // 
             this.splitContainer1.Panel1.Controls.Add(this.labTaskNum);
             this.splitContainer1.Panel1.Controls.Add(this.txtCatchHour);
+            this.splitContainer1.Panel1.Controls.Add(this.chkIncr);
             this.splitContainer1.Panel1.Controls.Add(this.chkStartCatch);
             this.splitContainer1.Panel1.Controls.Add(this.label3);
-            this.splitContainer1.Panel1.Controls.Add(this.label2);
             // 
             // splitContainer1.Panel2
             // 
@@ -98,14 +98,26 @@
             this.txtCatchHour.TabIndex = 4;
             this.txtCatchHour.Text = "24";
             // 
+            // chkIncr
+            // 
+            this.chkIncr.AutoSize = true;
+            this.chkIncr.Checked = true;
+            this.chkIncr.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkIncr.Location = new System.Drawing.Point(136, 12);
+            this.chkIncr.Name = "chkIncr";
+            this.chkIncr.Size = new System.Drawing.Size(132, 16);
+            this.chkIncr.TabIndex = 3;
+            this.chkIncr.Text = "增量抓取时间间隔：";
+            this.chkIncr.UseVisualStyleBackColor = true;
+            // 
             // chkStartCatch
             // 
             this.chkStartCatch.AutoSize = true;
             this.chkStartCatch.Location = new System.Drawing.Point(15, 12);
             this.chkStartCatch.Name = "chkStartCatch";
-            this.chkStartCatch.Size = new System.Drawing.Size(120, 16);
+            this.chkStartCatch.Size = new System.Drawing.Size(72, 16);
             this.chkStartCatch.TabIndex = 3;
-            this.chkStartCatch.Text = "开启循环增量抓取";
+            this.chkStartCatch.Text = "开启抓取";
             this.chkStartCatch.UseVisualStyleBackColor = true;
             this.chkStartCatch.CheckedChanged += new System.EventHandler(this.chkStartCatch_CheckedChanged);
             // 
@@ -117,15 +129,6 @@
             this.label3.Size = new System.Drawing.Size(29, 12);
             this.label3.TabIndex = 1;
             this.label3.Text = "小时";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(154, 13);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(113, 12);
-            this.label2.TabIndex = 1;
-            this.label2.Text = "增量抓取时间间隔：";
             // 
             // splitContainer2
             // 
@@ -153,6 +156,30 @@
             this.splitContainer2.SplitterWidth = 1;
             this.splitContainer2.TabIndex = 1;
             this.splitContainer2.TabStop = false;
+            // 
+            // chkTitle
+            // 
+            this.chkTitle.AutoSize = true;
+            this.chkTitle.Checked = true;
+            this.chkTitle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkTitle.Location = new System.Drawing.Point(12, 51);
+            this.chkTitle.Name = "chkTitle";
+            this.chkTitle.Size = new System.Drawing.Size(108, 16);
+            this.chkTitle.TabIndex = 3;
+            this.chkTitle.Text = "导出文件带标题";
+            this.chkTitle.UseVisualStyleBackColor = true;
+            // 
+            // chkSingle
+            // 
+            this.chkSingle.AutoSize = true;
+            this.chkSingle.Checked = true;
+            this.chkSingle.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkSingle.Location = new System.Drawing.Point(141, 51);
+            this.chkSingle.Name = "chkSingle";
+            this.chkSingle.Size = new System.Drawing.Size(126, 16);
+            this.chkSingle.TabIndex = 3;
+            this.chkSingle.Text = "导出单个Excel文件";
+            this.chkSingle.UseVisualStyleBackColor = true;
             // 
             // txtKeyWords
             // 
@@ -222,30 +249,6 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // chkSingle
-            // 
-            this.chkSingle.AutoSize = true;
-            this.chkSingle.Checked = true;
-            this.chkSingle.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkSingle.Location = new System.Drawing.Point(141, 51);
-            this.chkSingle.Name = "chkSingle";
-            this.chkSingle.Size = new System.Drawing.Size(126, 16);
-            this.chkSingle.TabIndex = 3;
-            this.chkSingle.Text = "导出单个Excel文件";
-            this.chkSingle.UseVisualStyleBackColor = true;
-            // 
-            // chkTitle
-            // 
-            this.chkTitle.AutoSize = true;
-            this.chkTitle.Checked = true;
-            this.chkTitle.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkTitle.Location = new System.Drawing.Point(12, 51);
-            this.chkTitle.Name = "chkTitle";
-            this.chkTitle.Size = new System.Drawing.Size(108, 16);
-            this.chkTitle.TabIndex = 3;
-            this.chkTitle.Text = "导出文件带标题";
-            this.chkTitle.UseVisualStyleBackColor = true;
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -276,7 +279,6 @@
         private System.Windows.Forms.ComboBox lstSites;
         private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.CheckBox chkStartCatch;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox txtCatchHour;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label labTaskNum;
@@ -287,6 +289,7 @@
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.CheckBox chkSingle;
         private System.Windows.Forms.CheckBox chkTitle;
+        private System.Windows.Forms.CheckBox chkIncr;
     }
 }
 

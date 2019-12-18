@@ -163,6 +163,10 @@ namespace StockWin.Services
                         Util.Error($"no page data: {url}: {pageHtml}");
                         break;
                     }
+
+                    var firstLineIdx = pageHtml.IndexOf("</tr>", startIdx, StringComparison.OrdinalIgnoreCase);
+                    if (firstLineIdx > 0)
+                        startIdx = firstLineIdx;
                     var match = RegPage.Match(pageHtml, startIdx);
                     while (match.Success)
                     {
@@ -174,8 +178,8 @@ namespace StockWin.Services
                         findData = true;
                         ret++;
 
-                        var sn = match.Groups[1].Value;
-                        var html = (match.Groups.Count > 2) ? match.Groups[2].Value : "";
+                        var sn = match.Groups["id"].Value;
+                        var html = match.Groups["content"].Value;
                         Interlocked.Increment(ref readNum);
 
                         // 保存详细SN列表

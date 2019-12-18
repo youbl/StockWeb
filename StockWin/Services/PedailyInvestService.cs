@@ -24,10 +24,10 @@ namespace StockWin.Services
             Path.Combine(Environment.CurrentDirectory, "InvestedPedailyInc/") + "{0}.txt";
         protected override Type ModelType { get; } = typeof(InvestEvt);
 
-        public override string PageStartStr { get; } = "共搜索到";
+        public override string PageStartStr { get; } = "共筛选出";
 
         protected override Regex RegPage { get; } = 
-            new Regex(@"<a\s[^>]+href=""/inv/show(\d+)/"">详情</a>", RegexOptions.Compiled);
+            new Regex(@"<a\s[^>]+href=""/inv/show(?<id>\d+)/"">详情</a>", RegexOptions.Compiled);
 
         static Regex _regexMain = new Regex(@"<div class=""box-fix-l""><div class=""info"">(.*?)</div></div>", RegexOptions.Compiled);
         static Regex _regexTitle = new Regex(@"<h1[^>]*>(.*?)</h1>", RegexOptions.Compiled);

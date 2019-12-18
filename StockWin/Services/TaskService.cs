@@ -20,14 +20,16 @@ namespace StockWin.Services
 
         private static bool Catching;
 
-        internal static void StartCatch(int hour, string siteName = null)
+        internal static void StartCatch(bool isIncr, int hour, string siteName = null)
         {
             Catching = true;
             var sleepMs = hour * 3600000;
             ThreadPool.UnsafeQueueUserWorkItem(state => {
                 while (Catching)
                 {
-                    ChgCatchStatus(StartOneTask, siteName);
+                    ChgCatchStatus(StartOneTask, isIncr, siteName);
+                    if (!isIncr)
+                        return;
                     Thread.Sleep(sleepMs);
                 }
             }, null);
@@ -36,18 +38,18 @@ namespace StockWin.Services
         internal static int StopCatch(string siteName = null)
         {
             Catching = false;
-            return ChgCatchStatus(StopOneTask, siteName);
+            return ChgCatchStatus(StopOneTask, false, siteName);
         }
 
-        delegate bool DoTask(string siteName);
-        private static int ChgCatchStatus(DoTask method, string siteName = null)
+        delegate bool DoTask(bool isIncr, string siteName);
+        private static int ChgCatchStatus(DoTask method, bool isIncr, string siteName = null)
         {
             var ret = 0;
             if (string.IsNullOrEmpty(siteName) || siteName == "全部")
             {
                 foreach (var pair in ArrSites)
                 {
-                    if (method(pair.Key))
+                    if (method(isIncr, pair.Key))
                     {
                         ret++;
                     }
@@ -55,7 +57,7 @@ namespace StockWin.Services
             }
             else
             {
-                if (method(siteName))
+                if (method(isIncr, siteName))
                 {
                     ret++;
                 }
@@ -66,9 +68,10 @@ namespace StockWin.Services
         /// <summary>
         /// 启动抓取任务，如果任务已经启动过，不再启动
         /// </summary>
+        /// <param name="isIncr">是否增量抓取</param>
         /// <param name="siteName"></param>
         /// <returns></returns>
-        static bool StartOneTask(string siteName)
+        static bool StartOneTask(bool isIncr, string siteName)
             //static async Task<bool> StartOneTask(string siteName)
         {
             BaseService service = GetSelectedService(siteName);
@@ -77,9 +80,10 @@ namespace StockWin.Services
 
             if (service.Completed)
             {
+                service.Cancel = false;
                 Task.Factory.StartNew(async () =>
                 {
-                    await service.SaveAllItems(true);
+                    await service.SaveAllItems(isIncr);
                     // MessageBox.Show("siteName抓取完成");
                 });
 
@@ -89,7 +93,7 @@ namespace StockWin.Services
             return false;
         }
 
-        static bool StopOneTask(string siteName)
+        static bool StopOneTask(bool isIncr, string siteName)
         {
             BaseService service = GetSelectedService(siteName);
             if (service == null)

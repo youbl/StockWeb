@@ -48,11 +48,13 @@ namespace StockWin
             var chk = chkStartCatch;
             if (chk.Checked)
             {
-                if (!int.TryParse(txtCatchHour.Text.Trim(), out var hour))
+                var isIncr = chkIncr.Checked;
+                int hour = 24;
+                if (isIncr && !int.TryParse(txtCatchHour.Text.Trim(), out hour))
                 {
                     return;
                 }
-                TaskService.StartCatch(hour);
+                TaskService.StartCatch(isIncr, hour);
             }
             else
             {
